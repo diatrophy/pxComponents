@@ -1,5 +1,4 @@
-// TODO - see if it is possible to move these rendering functions
-// into their own file/module
+// pxImageRenderer.js
 
 px.import({
   topShadow:'effects/topShadow.js',
@@ -81,11 +80,6 @@ px.import({
                     // we determine the containers scale here, to avoid recalculating it when
                     // applying callbacks for all the effects
                     var scale = (container.sx<container.sy)?container.sx:container.sy;
-
-            // var imageW = image.resource.w * s
-            // var imageH = image.resource.h * s
-            // container.h = imageH
-            // container.w = imageW
 
                     callbackList.forEach(function(element,index,array){
                         element(pxImage,scale)

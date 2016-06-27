@@ -7,11 +7,8 @@ var pxImage = function(c) {
     return {
         config      : c,
         addEffects  : function(pxImageEffects) {
-            // console.log('Adding effects')
-            // console.log(pxImageEffects)
             this['effects'] = pxImageEffects
             this['config'].t = 'object'         // for effects, image goes into a container
-            // console.log('in here')
             return this
         }
     }

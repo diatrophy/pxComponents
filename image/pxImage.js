@@ -4,17 +4,20 @@
 var pxImage = function(c) { 
 
     // default the config object type to 'image'
-    if (c != null)
-        c.t = "image"
+    if (c != null) {
+        c.t = "image"    
+    }
 
-    return {
+    var ret = {
         config      : c,
+ 
         // adds effects to this data object
         addEffects  : function(pxImageEffects) {
             this['effects'] = pxImageEffects
             this['config'].t = 'object'         // for effects, image goes into a container
             return this
         },
+
         // 'static' function that converts a list of images from a data provider into pxImages
         // the following is a sample image from a data provider
         /*
@@ -43,6 +46,13 @@ var pxImage = function(c) {
             return imageList
         }
     }
+
+    if (c != null) {
+        // save the original scale as animating image may alter this
+        ret.originalSx  = c.sx
+        ret.originalSy  = c.sy
+    }
+    return ret
 }
 
 module.exports = pxImage

@@ -11,10 +11,6 @@ px.import({
 
     module.exports = function(pxImage,scene,callback) {
 
-        // save the original sx/sy as this will be the final scale of the image after animation completes
-        var originalSx = pxImage.config.sx,
-            originalSy = pxImage.config.sy
-
         // setup the image starting location - outside the view area, as we want the image to 'fly-in' from
         // outside the view port
         pxImage.config.x = (pxMath.randomInt(0,1)==0)?-1000:scene.w+2000
@@ -30,11 +26,11 @@ px.import({
 
             // apply the animation and invoke the callback when the promise is returned
             picture.animateTo({
-                            x   :   pxMath.randomInt(50,scene.w-(image.resource.w*originalSx)-50),
-                            y   :   pxMath.randomInt(50,scene.h-(image.resource.h*originalSy)-50), 
+                            x   :   pxMath.randomInt(50,scene.w-(image.resource.w*pxImage.originalSx)-50),
+                            y   :   pxMath.randomInt(50,scene.h-(image.resource.h*pxImage.originalSy)-50), 
                             r   :   pxMath.randomInt(-15,15),
-                            sx  :   originalSx, 
-                            sy  :   originalSy 
+                            sx  :   pxImage.originalSx, 
+                            sy  :   pxImage.originalSy 
                         },2,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
                     .then(function(){
                         callback(pxImage)

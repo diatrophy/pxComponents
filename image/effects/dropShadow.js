@@ -50,7 +50,7 @@ px.import({
                 // shadow is scaled to match the scale of the polaroid frame
                 shadow.x = shadow.y = -1 * polaroidPadding 
                 shadow.w = imageW + (2*polaroidPadding) + addShadowOffset
-                shadow.h = imageH + (6*polaroidPadding) + addShadowOffset
+                shadow.h = imageH + (4*polaroidPadding) + addShadowOffset
 
             } else {
                 // shadow is scaled to match the scale of the rendered image

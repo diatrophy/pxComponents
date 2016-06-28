@@ -1,7 +1,8 @@
 
 module.exports =  {
     polaroid : {
-        padding : 100
+        padding : 75,
+        bottomMultiplier : 4
     },
     dropShadow : {
         offset : 37,

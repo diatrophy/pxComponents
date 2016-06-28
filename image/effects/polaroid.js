@@ -29,7 +29,7 @@ px.import({
             // polaroid is scaled to match the scale of the rendered image
             polaroid.x = polaroid.y = -1 * padding
             polaroid.w = readyImage.resource.w + (padding * 2)
-            polaroid.h = readyImage.resource.h + (padding * 6)
+            polaroid.h = readyImage.resource.h + (padding * constants.polaroid.bottomMultiplier)
         })    
     }
 })

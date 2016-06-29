@@ -1,17 +1,13 @@
-// pxAnimate.js
+// animate.js
 
 px.import({
-  pxImageRenderer:'../image/pxImageRenderer.js',
   randomFlyIn:'effects/randomFlyIn.js',
   fadeout:'effects/fadeout.js',
-  pxMath:'../pxMath.js'
 }).then(function importsAreReady(imports) {
 
-    var pxImageRenderer = imports.pxImageRenderer,
-        pxMath = imports.pxMath(),
-        effectFunctions = { 
+    var effectFunctions = { 
             randomFlyIn     : imports.randomFlyIn,
-            fadeout       : imports.fadeout
+            fadeout         : imports.fadeout
         }
 
     module.exports = function(scene) { 
@@ -19,14 +15,14 @@ px.import({
         return {
 
             // animates a single image
-            animate     : function(pxImage,pxAnimateEffects,callback) {
-                if (pxAnimateEffects.effects['randomFlyIn']) {
-                    effectFunctions['randomFlyIn'](pxImage,scene,callback)
+            animate     : function(uiImage,animateEffects,callback) {
+                if (animateEffects.effects['randomFlyIn']) {
+                    effectFunctions['randomFlyIn'](uiImage,scene,callback)
                 }
             },
 
             // animates a list of images
-            animateList : function(pxImageList,pxAnimateEffects,loop,maxImagesOnScreen,callback) {
+            animateList : function(uiImageList,animateEffects,loop,maxImagesOnScreen,callback) {
 
                 // save function for use in recursion
                 var animate = this.animate
@@ -39,17 +35,17 @@ px.import({
                 var animateImageFromList = function(index) {
 
                     // render all the animation in the list and afterward invoke the callback
-                    if (index < pxImageList.length) {
+                    if (index < uiImageList.length) {
 
                         // TODO - nice to have pre-loading of a certain set of images prior
-                        animate(pxImageList[index],pxAnimateEffects,function(pxImage){
+                        animate(uiImageList[index],animateEffects,function(uiImage){
 
                             // record the image into the stack
-                            animateStack.push(pxImage.container)
+                            animateStack.push(uiImage.container)
 
                             // reset the index, if the settings call for looping
                             if (loop) {
-                                if (index+1 == pxImageList.length) {
+                                if (index+1 == uiImageList.length) {
                                     index = -1                      // set the index
                                 } 
 

@@ -15,59 +15,59 @@ px.import({
     var preEffects = ['dropShadow','polaroid']
     var postEffects = ['topShadow']
 
-    var pxImageRenderer = function(scene) { 
+    module.exports = function(scene) { 
 
         return {
-            render  : function(pxImage,callback) {
+            render  : function(uiImage,callback) {
 
-                if (pxImage.effects)
+                if (uiImage.effects)
 
-                    this._renderWithEffects(pxImage, callback)
+                    this._renderWithEffects(uiImage, callback)
                 else {
 
-                    var image = scene.create(pxImage.config)
+                    var image = scene.create(uiImage.config)
                 
                     image.ready.then(function(image){
                         console.log('image is loaded')
-                        pxImage['image'] = image 
-                        callback(pxImage)
+                        uiImage['image'] = image 
+                        callback(uiImage)
                     })  
                 }         
             },
-            _renderWithEffects : function(pxImage,callback) {
+            _renderWithEffects : function(uiImage,callback) {
                 
                 console.log('Rendering with effects')
-                console.log(pxImage.effects)
+                console.log(uiImage.effects)
 
-                var effects = pxImage.effects.effects
+                var effects = uiImage.effects.effects
 
                 var callbackList = []
                 var applyEffectFunction = function(effect,index,array){
                     if (effects[effect]) {
-                        effectFunctions[effect](scene,pxImage,callbackList)
+                        effectFunctions[effect](scene,uiImage,callbackList)
                     }
                 }
 
                 // first create the container
-                var container = scene.create(pxImage.config)
-                pxImage['container'] = container
+                var container = scene.create(uiImage.config)
+                uiImage['container'] = container
 
                 preEffects.forEach(applyEffectFunction)
 
                 // then create the image, with the container above as parent
-                var imageConfig = {t:'image',url:pxImage.config.url,parent:container}
-                if (pxImage.config.w && pxImage.config.h) {
-                    imageConfig.w = pxImage.config.w
-                    imageConfig.h = pxImage.config.h
+                var imageConfig = {t:'image',url:uiImage.config.url,parent:container}
+                if (uiImage.config.w && uiImage.config.h) {
+                    imageConfig.w = uiImage.config.w
+                    imageConfig.h = uiImage.config.h
                 }
-                if (pxImage.config.stretchX && pxImage.config.stretchY) {
-                    imageConfig.stretchX = pxImage.config.stretchX
-                    imageConfig.stretchY = pxImage.config.stretchY
+                if (uiImage.config.stretchX && uiImage.config.stretchY) {
+                    imageConfig.stretchX = uiImage.config.stretchX
+                    imageConfig.stretchY = uiImage.config.stretchY
                 }
 
                 var image = scene.create(imageConfig)
 
-                pxImage['image'] = image
+                uiImage['image'] = image
 
                 postEffects.forEach(applyEffectFunction)
 
@@ -75,21 +75,18 @@ px.import({
                 // individual effect function before invoking the final callback defined by the Callee
                 image.ready.then(function(image){
                 
-                    pxImage['image'] = image 
+                    uiImage['image'] = image 
 
                     // we determine the containers scale here, to avoid recalculating it when
                     // applying callbacks for all the effects
                     var scale = (container.sx<container.sy)?container.sx:container.sy;
 
                     callbackList.forEach(function(element,index,array){
-                        element(pxImage,scale)
+                        element(uiImage,scale)
                     })
-                    callback(pxImage)
+                    callback(uiImage)
                 })
             }
         }
     }
-
-    module.exports = pxImageRenderer
-
 })

@@ -2,38 +2,38 @@
 // applies a random fly in animation on the PxImage
 
 px.import({
-    pxImageRenderer:'../../image/pxImageRenderer.js',
-    pxMath:'../../pxMath.js'
+    imageRenderer:'../../image/imageRenderer.js',
+    math:'../../math.js'
 }).then(function importsAreReady(imports) {
 
-    var pxImageRenderer = imports.pxImageRenderer,
-        pxMath = imports.pxMath()
+    var imageRenderer = imports.imageRenderer,
+        math = imports.math()
 
-    module.exports = function(pxImage,scene,callback) {
+    module.exports = function(uiImage,scene,callback) {
 
         // setup the image starting location - outside the view area, as we want the image to 'fly-in' from
         // outside the view port
-        pxImage.config.x = (pxMath.randomInt(0,1)==0)?-1000:scene.w+2000
-        pxImage.config.y = pxMath.randomInt(-200, 800)
-        pxImage.config.sx = 1
-        pxImage.config.sy = 1
+        uiImage.config.x = (math.randomInt(0,1)==0)?-1000:scene.w+2000
+        uiImage.config.y = math.randomInt(-200, 800)
+        uiImage.config.sx = 1
+        uiImage.config.sy = 1
 
         // first render the image to the random location out of the viewport and then move it into the scene
-        pxImageRenderer(scene).render(pxImage,function(pxImage){
+        imageRenderer(scene).render(uiImage,function(uiImage){
 
-            var picture = pxImage["container"]
-            var image = pxImage["image"]
+            var picture = uiImage["container"]
+            var image = uiImage["image"]
 
             // apply the animation and invoke the callback when the promise is returned
             picture.animateTo({
-                            x   :   pxMath.randomInt(50,scene.w-(image.resource.w*pxImage.originalSx)-50),
-                            y   :   pxMath.randomInt(50,scene.h-(image.resource.h*pxImage.originalSy)-50), 
-                            r   :   pxMath.randomInt(-15,15),
-                            sx  :   pxImage.originalSx, 
-                            sy  :   pxImage.originalSy 
+                            x   :   math.randomInt(50,scene.w-(image.resource.w*uiImage.originalSx)-50),
+                            y   :   math.randomInt(50,scene.h-(image.resource.h*uiImage.originalSy)-50), 
+                            r   :   math.randomInt(-15,15),
+                            sx  :   uiImage.originalSx, 
+                            sy  :   uiImage.originalSy 
                         },2,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
                     .then(function(){
-                        callback(pxImage)
+                        callback(uiImage)
                     })
         })
     }

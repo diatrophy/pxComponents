@@ -1,7 +1,7 @@
-// pxImage 
+// uiImage 
 // This is a wrapper object that contains info to build a pxscene 'image' object
 
-var pxImage = function(c) { 
+var image = function(c) { 
 
     // default the config object type to 'image'
     if (c != null) {
@@ -12,8 +12,8 @@ var pxImage = function(c) {
         config      : c,
  
         // adds effects to this data object
-        addEffects  : function(pxImageEffects) {
-            this['effects'] = pxImageEffects
+        addEffects  : function(imageEffects) {
+            this['effects'] = imageEffects
             this['config'].t = 'object'         // for effects, image goes into a container
             return this
         },
@@ -39,7 +39,7 @@ var pxImage = function(c) {
             var imageList = []
             if (images != null && images.length > 0) {
                 for (var i=0;i<images.length;i++) {
-                    imageList.push(pxImage({url:images[i].url,parent:root,x:50,y:50,sx:0.40,sy:0.40})
+                    imageList.push(image({url:images[i].url,parent:root,x:50,y:50,sx:0.40,sy:0.40})
                                     .addEffects(effects))
                 }
             }
@@ -55,4 +55,4 @@ var pxImage = function(c) {
     return ret
 }
 
-module.exports = pxImage
+module.exports = image

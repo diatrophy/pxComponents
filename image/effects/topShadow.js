@@ -1,28 +1,28 @@
 // topShadow.js
 // post effect
 
-module.exports =  function(scene,pxImage,callbackList) {
+module.exports =  function(scene,uiImage,callbackList) {
     
     // create the top shadow on top of it
-    var effects = pxImage.effects.effects,
-        image   = pxImage['image'],
+    var effects = uiImage.effects.effects,
+        image   = uiImage['image'],
         topShadow = scene.create({
                         t:'image', 
                         // TODO - currently this effect happens via an image overlay. 
                         // should explore whether a rectangle with
                         // gausian blur would acheive the same effect
                         url:effects['topShadow'].url,    
-                        parent:pxImage['container'],
+                        parent:uiImage['container'],
                         stretchX:1,stretchY:1,      // the shadow image stretches over the actual image
                         a:0.75,                     // top shadow has some transparency
                     })       
 
     // register a callback to re-size the top shadow after the image has been rendered
-    callbackList.push(function(pxImage,scale){
+    callbackList.push(function(uiImage,scale){
 
-        var container = pxImage.container
+        var container = uiImage.container
 
-        var readyImage = pxImage.image
+        var readyImage = uiImage.image
 
         if(scale>0) {
             // if the image is streched we need to scale the top shadow using the image's width/height

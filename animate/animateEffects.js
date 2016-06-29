@@ -1,6 +1,6 @@
 // pxAnimateEffects.js
 
-var pxAnimateEffects = function() { 
+module.exports = function() { 
     
     return {
         effects      : {},
@@ -11,5 +11,3 @@ var pxAnimateEffects = function() {
         }
     }
 }
-
-module.exports = pxAnimateEffects

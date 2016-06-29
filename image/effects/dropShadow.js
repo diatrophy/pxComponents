@@ -7,17 +7,17 @@ px.import({
 
     var constants = imports.constants
 
-    module.exports =  function(scene,pxImage,callbackList) {
+    module.exports =  function(scene,uiImage,callbackList) {
 
-        var imageUrl = pxImage.config.url
+        var imageUrl = uiImage.config.url
 
-        var effects = pxImage.effects.effects
+        var effects = uiImage.effects.effects
 
         // add the shadow
         var shadow = scene.create({
                             t:"image9",
                             url:effects['dropShadow'].url,
-                            parent:pxImage['container'],
+                            parent:uiImage['container'],
                             a:0.45,
                             // x:constants.dropShadow.offset,y:constants.dropShadow.offset,
                             // TODO - the following properties are image9 related and probably should
@@ -26,14 +26,14 @@ px.import({
                             insetTop:48,insetBottom:48,insetLeft:48,insetRight:48
                         })
 
-        pxImage["shadow"] = shadow
+        uiImage["shadow"] = shadow
 
         // in this case we can only determine the Width/Height of the shadow
         // after it has been loaded, hence we add the callback to the list of 
         // post image load funtions to run
-        callbackList.push(function(pxImage,scale){
+        callbackList.push(function(uiImage,scale){
 
-            var readyImage = pxImage.image
+            var readyImage = uiImage.image
 
             // TODO - this needs more work - At the moment the shadow is left oriented, and
             // would be nice if it were configurable
@@ -45,7 +45,7 @@ px.import({
             var imageW = readyImage.resource.w
             var imageH = readyImage.resource.h
 
-            if (pxImage.polaroid) {
+            if (uiImage.polaroid) {
 
                 // shadow is scaled to match the scale of the polaroid frame
                 shadow.x = shadow.y = -1 * polaroidPadding 

@@ -1,6 +1,6 @@
-// pxImageEffects.js
+// imageEffects.js
 
-var pxImageEffects = function() { 
+module.exports = function() { 
     
     return {
         effects      : {},
@@ -21,5 +21,3 @@ var pxImageEffects = function() {
         }
     }
 }
-
-module.exports = pxImageEffects

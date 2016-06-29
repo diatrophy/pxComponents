@@ -7,21 +7,21 @@ px.import({
 
     var constants = imports.constants
 
-    module.exports =  function(scene,pxImage,callbackList) {
+    module.exports =  function(scene,uiImage,callbackList) {
 
         var polaroid = scene.create({       // create a rectangle to simulate a polaroid
             t:"rect",
-            parent:pxImage['container'],
+            parent:uiImage['container'],
             fillColor:0xF8F8F8FF,
             lineColor:0xCCCCCC80,
             lineWidth:4})   
 
-        pxImage["polaroid"] = polaroid
+        uiImage["polaroid"] = polaroid
 
         // register a callback to re-size the polaroid frame after the image has been rendered
-        callbackList.push(function(pxImage,scale){
+        callbackList.push(function(uiImage,scale){
 
-            var readyImage = pxImage.image
+            var readyImage = uiImage.image
 
             // TODO - padding could be scaled to match the scale of the rendered image
             var padding = constants.polaroid.padding 

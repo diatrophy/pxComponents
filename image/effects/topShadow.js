@@ -14,7 +14,7 @@ module.exports =  function(scene,uiImage,callbackList) {
                         url:effects['topShadow'].url,    
                         parent:uiImage['container'],
                         stretchX:1,stretchY:1,      // the shadow image stretches over the actual image
-                        a:0.75,                     // top shadow has some transparency
+                        a:0,                        // top shadow has some transparency
                     })       
 
     // register a callback to re-size the top shadow after the image has been rendered
@@ -35,6 +35,7 @@ module.exports =  function(scene,uiImage,callbackList) {
                 topShadow.w =  readyImage.w 
                 topShadow.h =  readyImage.h 
             }
+            topShadow.a = 0.75  // only apply the transparency after everything has loaded
         }
     })
 

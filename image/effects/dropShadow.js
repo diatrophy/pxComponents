@@ -18,7 +18,7 @@ px.import({
                             t:"image9",
                             url:effects['dropShadow'].url,
                             parent:uiImage['container'],
-                            a:0.45,
+                            a:0,
                             // x:constants.dropShadow.offset,y:constants.dropShadow.offset,
                             // TODO - the following properties are image9 related and probably should
                             // not be hard-coded as this is associated with the Image ie.
@@ -57,6 +57,8 @@ px.import({
                 shadow.w =  imageW + addShadowOffset
                 shadow.h =  imageH + addShadowOffset
             }
+
+            shadow.a = 0.45
         })
     }
 

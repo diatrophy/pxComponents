@@ -14,6 +14,7 @@ px.import({
             parent:uiImage['container'],
             fillColor:0xF8F8F8FF,
             lineColor:0xCCCCCC80,
+            a:0,
             lineWidth:4})   
 
         uiImage["polaroid"] = polaroid
@@ -30,6 +31,7 @@ px.import({
             polaroid.x = polaroid.y = -1 * padding
             polaroid.w = readyImage.resource.w + (padding * 2)
             polaroid.h = readyImage.resource.h + (padding * constants.polaroid.bottomMultiplier)
+            polaroid.a = 1
         })    
     }
 })

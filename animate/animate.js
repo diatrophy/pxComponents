@@ -1,13 +1,15 @@
 // animate.js
 
 px.import({
-  randomFlyIn:'effects/randomFlyIn.js',
-  fadeout:'effects/fadeout.js',
+    randomFlyIn         : 'effects/randomFlyIn.js',
+    randomFlyInList     : 'effects/randomFlyInList.js',
+    slideInList         : 'effects/slideInList.js'
 }).then(function importsAreReady(imports) {
 
     var effectFunctions = { 
             randomFlyIn     : imports.randomFlyIn,
-            fadeout         : imports.fadeout
+            randomFlyInList : imports.randomFlyInList,
+            slideInList     : imports.slideInList
         }
 
     module.exports = function(scene) { 
@@ -22,56 +24,20 @@ px.import({
             },
 
             // animates a list of images
-            animateList : function(uiImageList,animateEffects,loop,maxImagesOnScreen,callback) {
+            animateList : function(uiImageList,animateEffects,callback) {
 
-                // save function for use in recursion
-                var animate = this.animate
+                if (animateEffects.effects['slideIn']) {
 
-                // a stack to keep track of all the image rendered to the screen
-                var animateStack = []
+                    effectFunctions['slideInList'](uiImageList,animateEffects.effects['slideIn'],scene,callback)
 
-                // recursive function that applies animation to a list of function
-                // the animation is sequential
-                var animateImageFromList = function(index) {
+                } else if (animateEffects.effects['randomFlyIn'] != null) {
+     
+                    effectFunctions['randomFlyInList'](uiImageList,animateEffects.effects['randomFlyIn'],scene,callback)
 
-                    // render all the animation in the list and afterward invoke the callback
-                    if (index < uiImageList.length) {
-
-                        // TODO - nice to have pre-loading of a certain set of images prior
-                        animate(uiImageList[index],animateEffects,function(uiImage){
-
-                            // record the image into the stack
-                            animateStack.push(uiImage.container)
-
-                            // reset the index, if the settings call for looping
-                            if (loop) {
-                                if (index+1 == uiImageList.length) {
-                                    index = -1                      // set the index
-                                } 
-
-                                // TODO : the following operations should probably be
-                                // part of some cleanup function
-
-                                // get rid of the oldest image on the screen by fade out
-                                if (animateStack.length > maxImagesOnScreen) {
-                                    var container = animateStack.shift()
-                                    effectFunctions['fadeout'](container,scene,function(c){
-                                        c.remove()
-                                    })
-                                }
-                            }
-
-                            animateImageFromList(index + 1)         // recurse
-                        })
-                    } else {
-                        // final callback - when all animations have been applied
-                        callback()
-                    }
                 }
-
-                // start the recursion
-                animateImageFromList(0)
             }
         }
     }
-})
+}).catch( function(err){
+    console.error("Error: " + err)
+});

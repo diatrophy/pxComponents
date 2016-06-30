@@ -1,15 +1,14 @@
 // slideIn.js
 
-
 px.import({
-    pxImageRenderer:'../../image/pxImageRenderer.js',
-    pxMath:'../../pxMath.js'
+    imageRenderer:'../../image/imageRenderer.js',
+    math:'../../math.js'
 }).then(function importsAreReady(imports) {
 
-    var pxImageRenderer = imports.pxImageRenderer,
-        pxMath = imports.pxMath()
+    var imageRenderer = imports.imageRenderer,
+        math = imports.math()
 
-    module.exports = function(pxImageList,scene,callback) {
+    module.exports = function(imageList,scene,callback) {
 
         // first load all images and when loaded, start animation
 

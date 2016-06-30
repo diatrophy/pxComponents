@@ -31,7 +31,7 @@ px.import({
             polaroid.x = polaroid.y = -1 * padding
             polaroid.w = readyImage.resource.w + (padding * 2)
             polaroid.h = readyImage.resource.h + (padding * constants.polaroid.bottomMultiplier)
-            polaroid.a = 1
+            polaroid.a = 1          // make the polaroid effect visible
         })    
     }
 })

@@ -58,7 +58,7 @@ px.import({
                 shadow.h =  imageH + addShadowOffset
             }
 
-            shadow.a = 0.45
+            shadow.a = 0.45             // make the shadow visible
         })
     }
 

@@ -89,4 +89,6 @@ px.import({
             }
         }
     }
-})
+}).catch( function(err){
+    console.error("Error: " + err)
+});

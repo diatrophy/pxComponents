@@ -39,8 +39,11 @@ var image = function(c) {
             var imageList = []
             if (images != null && images.length > 0) {
                 for (var i=0;i<images.length;i++) {
-                    imageList.push(image({url:images[i].url,parent:root,x:50,y:50,sx:0.40,sy:0.40})
-                                    .addEffects(effects))
+                    var img = image({url:images[i].url,parent:root,x:50,y:50,sx:0.40,sy:0.40})
+                    if (effects != null) {
+                        img.addEffects(effects)
+                    }
+                    imageList.push(img)
                 }
             }
             return imageList

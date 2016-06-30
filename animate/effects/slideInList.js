@@ -78,7 +78,10 @@ px.import({
                         // make the container fade in
                         fadein(imageContainer,scene,function(container){
                             // container faded in - now lets start scrolling the container 
-                            console.log('faded in')
+
+                            var loop = 1
+                            if (config.loop)
+                                loop = scene.animation.COUNT_FOREVER
 
                             // animate the whole container to the left upto the entire width of the images minus any padding
                             // the padding subtraction ensures that the container is at a point where the animation loop appears
@@ -86,7 +89,9 @@ px.import({
                              imageContainer.animateTo({x: -(xLoc - paddingW) },
                                 (scene.root.w/60)*numImages,
                                 scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP,
-                                scene.animation.COUNT_FOREVER);
+                                loop);
+
+                             callback()
                         })
                     }    
                 } 

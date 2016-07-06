@@ -21,3 +21,14 @@ pxComponents simplifies the creation of pxscene objects like **Image** and helps
 # Common Documentation locations -
 
 - http://johnrobinsn.github.io/pxScene2d/docs/
+
+
+# TODO
+
+- shadow images can be hosted at pxComponents and loaded in via a url
+
+# Missing documentation
+
+- rx,rz
+- moveToFront
+

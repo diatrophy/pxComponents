@@ -18,6 +18,10 @@ module.exports = function() {
         polaroid   : function(url) {
            this.effects['polaroid'] = {}
            return this
+        },
+        reflection   : function(url) {
+           this.effects['reflection'] = {}
+           return this
         }
     }
 }

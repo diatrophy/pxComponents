@@ -35,13 +35,18 @@ var image = function(c) {
                 username: "Pedalhead'71"
             }
         */
-        fromDataProvider : function(images,root,effects) {
+        fromDataProvider : function(images,root,effects,overrides) {
             var imageList = []
             if (images != null && images.length > 0) {
                 for (var i=0;i<images.length;i++) {
                     var img = image({url:images[i].url,parent:root,x:50,y:50,sx:0.40,sy:0.40})
                     if (effects != null) {
-                        img.addEffects(effects)
+                        img.addEffects(effects)     // apply effects to the image
+                    }
+                    if (overrides != null) {
+                        for(k in overrides) {
+                            img.config[k] = overrides[k]    // apply any overrides for all images
+                        }
                     }
                     imageList.push(img)
                 }

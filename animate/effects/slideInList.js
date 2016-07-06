@@ -24,7 +24,9 @@ px.import({
         var xLoc = 0            // keeps track of the next stich point of an image
         var paddingW = 0
 
-        // recursive function
+        // recursive function 
+        // TODO - refactor to use a for loop instead of recursion
+        // Recursion loads each image sequentially instead of in parallel
         var createImage = function(index,padding) {
 
             var i = index

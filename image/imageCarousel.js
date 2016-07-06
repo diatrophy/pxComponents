@@ -79,6 +79,7 @@ px.import({
                     // and this animates all the images to the right (from the intial location) 
                     t._updateSelection(-1,0)
 
+                    carouselContainer.focus = true
                     callback(t)
                 })
 
@@ -96,14 +97,12 @@ px.import({
                     newSelection = math.clamp(this.selection-1,0,max)
                 else if (direction == 'right' || direction == 39)
                     newSelection = math.clamp(this.selection+1,0,max)
-                
+                else
+                    return  // the direction wasn't left or right so return
 
                 if (oldSelection != newSelection) {
                     this._updateSelection(oldSelection<=1?-1:oldSelection,newSelection,preCallback,callback)
                 }                                
-
-                preCallback()
-
             },
             // function that handles animating the carousel left or right
             _updateSelection : function(oldSelection, newSelection,preCallback, callback) {
@@ -114,14 +113,18 @@ px.import({
                 var tween = scene.animation.TWEEN_STOP
                      
                 var tiles = this.config.tiles
+                this.selection = newSelection;
 
                 for (var i = 0; i < tiles.length; i++) {
-                    console.log(' updating selection ')
+
                     var o = tiles[i].image
                     var w = o.w
 
                     if (i == newSelection) {    // handle the selection animation
                         
+                        if (preCallback != null)
+                            preCallback()
+
                         if (newSelection > 0) x += w
 
                         tiles[i].container.moveToFront()
@@ -146,7 +149,6 @@ px.import({
                         x+= wspace;
                     } 
                 }
-                this.selection = newSelection;
             },
         }
     }

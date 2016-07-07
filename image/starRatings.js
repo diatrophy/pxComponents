@@ -49,7 +49,6 @@ px.import({
                 }
             },
             animStars : function(starY, starX, numStars) {
-                console.log('in anim stars' + numStars)
                 this.starHolder.animateTo({a:1,y:starY,x:starX-((numStars*starWidth)/2)},0.2,scene.animation.TWEEN_LINEAR,scene.animation.LOOP,1);
                 this.anim(0, numStars, starX);
             }

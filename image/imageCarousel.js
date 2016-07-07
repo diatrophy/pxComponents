@@ -137,7 +137,7 @@ px.import({
                         // make the tile move to underneath the image
                         this.title.animateTo({x:tempX},0.3,tween,scene.animation.LOOP,1).then(function(obj){
                             if (callback != null) {
-                                callback(tiles[i])
+                                callback(tiles[i],obj)
                             }
                         });
 

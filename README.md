@@ -22,13 +22,14 @@ pxComponents simplifies the creation of pxscene objects like **Image** and helps
 
 - http://johnrobinsn.github.io/pxScene2d/docs/
 
-
 # TODO
 
 - shadow images can be hosted at pxComponents and loaded in via a url
 
-# Missing documentation
-
-- rx,rz
+# Missing documentation 
+- rx,rz         
 - moveToFront
+
+# Open Questions
+- Do Remote key codes correspond to keyboard key codes ?
 

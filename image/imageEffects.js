@@ -22,6 +22,10 @@ module.exports = function() {
         reflection   : function(url) {
            this.effects['reflection'] = {}
            return this
+        },
+        border       : function(padding) {
+           this.effects['border'] = {padding:padding}
+           return this
         }
     }
 }

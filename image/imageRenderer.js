@@ -4,7 +4,8 @@ px.import({
     topShadow:'effects/topShadow.js',
     dropShadow:'effects/dropShadow.js',
     polaroid:'effects/polaroid.js',
-    reflection:'effects/reflection.js'
+    reflection:'effects/reflection.js',
+    border:'effects/border.js',
 
 }).then(function importsAreReady(imports) {
 
@@ -13,10 +14,11 @@ px.import({
         topShadow   : imports.topShadow,
         dropShadow  : imports.dropShadow,
         polaroid    : imports.polaroid,
-        reflection  : imports.reflection
+        reflection  : imports.reflection,
+        border      : imports.border,
     }
    
-    var preEffects = ['dropShadow','polaroid']
+    var preEffects = ['dropShadow','polaroid','border']
     var postEffects = ['topShadow','reflection']
 
     module.exports = function(scene) { 
@@ -61,9 +63,6 @@ px.import({
             },
             _renderWithEffects : function(uiImage,callback) {
                 
-                console.log('Rendering with effects')
-                console.log(uiImage.effects)
-
                 var effects = uiImage.effects.effects
 
                 var callbackList = []

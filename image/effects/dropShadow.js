@@ -39,26 +39,44 @@ px.import({
             // would be nice if it were configurable
             var shadowOffset = constants.dropShadow.offset
             var blurSize = constants.dropShadow.blurSize
-            var polaroidPadding = constants.polaroid.padding
 
             var addShadowOffset = ( shadowOffset * 2) - blurSize
             var imageW = readyImage.resource.w
             var imageH = readyImage.resource.h
 
-            if (uiImage.polaroid) {
+            var effects = uiImage.effects.effects
+
+            shadow.x = -1 * addShadowOffset
+            shadow.y = -1 * addShadowOffset
+
+            if (effects['polaroid']) {
+
+                var polaroidWidth = effects['polaroid'].w
+
+                var sidePadding = polaroidWidth/17
+                var topPadding = sidePadding * (3/2)
+                var bottomPadding = sidePadding * 4
+
+                shadow.x -= sidePadding 
+                shadow.y -= sidePadding
 
                 // shadow is scaled to match the scale of the polaroid frame
-                shadow.x = shadow.y = -1 * polaroidPadding 
-                shadow.w = imageW + (2*polaroidPadding) + addShadowOffset
-                shadow.h = imageH + (4*polaroidPadding) + addShadowOffset
+                shadow.w = polaroidWidth + (sidePadding*2)
+                shadow.h = polaroidWidth * 1.24415204678363 + (topPadding)
+
+                shadow.a = 0.45             // make the shadow visible
 
             } else {
+                
+                shadow.x = shadow.x - (5*addShadowOffset)
+                shadow.y = shadow.y - (5*addShadowOffset)
+
                 // shadow is scaled to match the scale of the rendered image
                 shadow.w =  imageW + addShadowOffset
                 shadow.h =  imageH + addShadowOffset
-            }
 
-            shadow.a = 0.45             // make the shadow visible
+                shadow.a = 0.25             // make the shadow visible
+            }
         })
     }
 

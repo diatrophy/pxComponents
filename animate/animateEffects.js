@@ -6,7 +6,7 @@ module.exports = function() {
         effects      : {},
         // adds a randomFlyIn effect on an image
         randomFlyIn   : function(config) {
-           this.effects['randomFlyIn'] = config
+           this.effects['randomFlyIn'] = config == null ? {} : config
            return this
         },
         slideIn       : function(config) {

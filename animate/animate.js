@@ -31,7 +31,7 @@ px.import({
                     effectFunctions['slideInList'](uiImageList,animateEffects.effects['slideIn'],scene,callback)
 
                 } else if (animateEffects.effects['randomFlyIn'] != null) {
-     
+
                     effectFunctions['randomFlyInList'](uiImageList,animateEffects.effects['randomFlyIn'],scene,callback)
 
                 }

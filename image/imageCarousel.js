@@ -23,7 +23,11 @@ px.import({
             config  : {
                 tiles : []
             },
-            init    : function(uiImageList,style,cParent,cW,cH) {
+            init    : function(uiImageList,style,cParent,cW,cH,xOffset,defaultSelection) {
+
+                this.xOffset = xOffset
+                if (defaultSelection != null)
+                    this.selection = defaultSelection
 
                 // defaults to 1080p resolution if none provided
                 cW = cW == null ? 1920 : cW
@@ -103,7 +107,7 @@ px.import({
                     t.container.a = 1                    // after all the tiles have been rendered make container appear
 
                     // and this animates all the images to the right (from the intial location) 
-                    t._updateSelection(-1,0)
+                    t._updateSelection(-1,t.selection)
 
                     t.carouselContainer.focus = true
 
@@ -144,10 +148,7 @@ px.import({
             // a lot of the styling code is customized in here
             _updateSelection : function(oldSelection, newSelection) {
 
-                var x = 50
-                if (this.style == 1) {
-                    x = 25
-                }
+                var x = this.xOffset
                 var wspace = 50;
                 var tween = scene.animation.TWEEN_STOP
                 var t = this

@@ -15,20 +15,32 @@ px.import({
         // outside the view port
         uiImage.config.x = (math.randomInt(0,1)==0)?-1000:scene.w+2000
         uiImage.config.y = math.randomInt(-200, 800)
-       
+        
+        var effects = uiImage.effects.effects
+
         // first render the image to the random location out of the viewport and then move it into the scene
         imageRenderer(scene).render(uiImage,function(uiImage){
 
             var picture = uiImage["container"]
             var image = uiImage["image"]
 
+            var targetSx = uiImage.originalSx
+            var targetSy = uiImage.originalSy
+
+            picture.sx = 2
+            picture.sy = 2
+
+            if (effects['polaroid']) {
+                targetSy = targetSx = 1
+            }
+
             // apply the animation and invoke the callback when the promise is returned
             picture.animateTo({
                             x   :   math.randomInt(50,scene.w-(image.resource.w*uiImage.originalSx)-50),
                             y   :   math.randomInt(50,scene.h-(image.resource.h*uiImage.originalSy)-50), 
                             r   :   math.randomInt(-15,15),
-                            sx  :   uiImage.originalSx, 
-                            sy  :   uiImage.originalSy 
+                            sx  :   targetSx,
+                            sy  :   targetSy
                         },2,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
                     .then(function(){
                         callback(uiImage)

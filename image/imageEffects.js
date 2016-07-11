@@ -15,8 +15,8 @@ module.exports = function() {
            return this
         },
         // adds a polaroid effect to the image
-        polaroid   : function(url) {
-           this.effects['polaroid'] = {}
+        polaroid   : function(w) {
+           this.effects['polaroid'] = {w:w}
            return this
         },
         reflection   : function(url) {

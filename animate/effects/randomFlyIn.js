@@ -15,9 +15,7 @@ px.import({
         // outside the view port
         uiImage.config.x = (math.randomInt(0,1)==0)?-1000:scene.w+2000
         uiImage.config.y = math.randomInt(-200, 800)
-        uiImage.config.sx = 1
-        uiImage.config.sy = 1
-
+       
         // first render the image to the random location out of the viewport and then move it into the scene
         imageRenderer(scene).render(uiImage,function(uiImage){
 

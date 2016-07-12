@@ -24,7 +24,14 @@ module.exports = function() {
         h   :   Math.round(w * 1.24415204678363),
         sidePadding :sidePadding,
         topPadding  : Math.round(sidePadding * (3/2)),
-        bottomPadding : sidePadding * 4
+        bottomPadding : sidePadding * 4,
+        setW : function(w,p) {
+          p.w   = w
+          p.h   = Math.round(w * 1.24415204678363)
+          p.sidePadding = Math.round(w/17)
+          p.topPadding  = Math.round(p.sidePadding * (3/2))
+          p.bottomPadding = p.sidePadding * 4
+        }
       }
 
       return this

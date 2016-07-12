@@ -37,46 +37,45 @@ px.import({
 
             // TODO - this needs more work - At the moment the shadow is left oriented, and
             // would be nice if it were configurable
-            var shadowOffset = constants.dropShadow.offset
+            var shadowOffset = effects['dropShadow'].size != null ? effects['dropShadow'].size : constants.dropShadow.offset
             var blurSize = constants.dropShadow.blurSize
 
             var addShadowOffset = ( shadowOffset * 2) - blurSize
             var imageW = readyImage.resource.w
             var imageH = readyImage.resource.h
 
-            var effects = uiImage.effects.effects
-
-            shadow.x = -1 * addShadowOffset
-            shadow.y = -1 * addShadowOffset
-
             if (effects['polaroid']) {
 
-                var polaroidWidth = effects['polaroid'].w
+                var sidePadding = effects['polaroid'].sidePadding
+                var topPadding = effects['polaroid'].topPadding
+                var bottomPadding = effects['polaroid'].bottomPadding
 
-                var sidePadding = polaroidWidth/17
-                var topPadding = sidePadding * (3/2)
-                var bottomPadding = sidePadding * 4
-
-                shadow.x -= sidePadding 
-                shadow.y -= sidePadding
+                shadow.y = -1 * 30
+                shadow.x = -1 * 30
 
                 // shadow is scaled to match the scale of the polaroid frame
-                shadow.w = polaroidWidth + (sidePadding*2)
-                shadow.h = polaroidWidth * 1.24415204678363 + (topPadding)
+                shadow.w = effects['polaroid'].w + 2 * 30 + shadowOffset 
+                shadow.h = effects['polaroid'].h + 2 * 30 + shadowOffset 
 
                 shadow.a = 0.45             // make the shadow visible
 
             } else {
                 
-                shadow.x = shadow.x - (5*addShadowOffset)
-                shadow.y = shadow.y - (5*addShadowOffset)
+                readyImage.w = uiImage.container.sx * readyImage.resource.w
+                readyImage.h = uiImage.container.sy * readyImage.resource.h
+
+                uiImage.container.sx = uiImage.container.sy = 1
+
+                shadow.y = -1 * 30
+                shadow.x = -1 * 30
 
                 // shadow is scaled to match the scale of the rendered image
-                shadow.w =  imageW + addShadowOffset
-                shadow.h =  imageH + addShadowOffset
+                shadow.w =  readyImage.w + 2 * 30 + shadowOffset
+                shadow.h =  readyImage.h + 2 * 30 + shadowOffset 
 
-                shadow.a = 0.25             // make the shadow visible
+                shadow.a = 0.45             // make the shadow visible
             }
+            
         })
     }
 

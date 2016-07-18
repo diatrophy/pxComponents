@@ -1,6 +1,5 @@
 // screen.js
 
-
 module.exports = function() { 
 
     //  public methods
@@ -20,6 +19,7 @@ module.exports = function() {
             else if (s == 1080)
                 return 1080
             else 
-                return null        },
+                return null        
+        },
     }
 }

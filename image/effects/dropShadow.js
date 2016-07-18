@@ -41,9 +41,7 @@ px.import({
             var blurSize = constants.dropShadow.blurSize
 
             var addShadowOffset = ( shadowOffset * 2) - blurSize
-            var imageW = readyImage.resource.w
-            var imageH = readyImage.resource.h
-
+          
             if (effects['polaroid']) {
 
                 var sidePadding = effects['polaroid'].sidePadding
@@ -61,8 +59,12 @@ px.import({
 
             } else {
                 
-                readyImage.w = uiImage.container.sx * readyImage.resource.w
-                readyImage.h = uiImage.container.sy * readyImage.resource.h
+                console.log("----" + readyImage)
+
+                if (uiImage.t == 'image') {
+                    readyImage.w = uiImage.container.sx * readyImage.resource.w
+                    readyImage.h = uiImage.container.sy * readyImage.resource.h
+                }
 
                 uiImage.container.sx = uiImage.container.sy = 1
 

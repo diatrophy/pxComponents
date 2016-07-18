@@ -5,7 +5,11 @@ var image = function(c) {
 
     // default the config object type to 'image'
     if (c != null) {
-        c.t = "image"    
+        if (c.url != null) {
+            c.t = "image"    
+        } else {
+            c.t = "rect"    // if no url is supplied this image can be rendered as a rect
+        }
     }
 
     var ret = {
@@ -59,6 +63,7 @@ var image = function(c) {
         // save the original scale as animating image may alter this
         ret.originalSx  = c.sx
         ret.originalSy  = c.sy
+        ret.originalT = c.t
     }
     return ret
 }

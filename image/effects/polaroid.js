@@ -50,13 +50,21 @@ px.import({
    
             readyImage.parent = cropper
 
-            if (readyImage.resource.w >= readyImage.resource.h) {
+            // we set the image h/w to the resource if available
+            var imgW = readyImage.w
+            var imgH = readyImage.h
+            if (readyImage.resource != null) {
+                imgH = readyImage.resource.h
+                imgW = readyImage.resource.w
+            }
+
+            if (imgW >= imgH) {
 
                 // scale and crop across height
                 readyImage.h = cropper.h
 
                 // now need to determine how much more to scale
-                readyImage.w = Math.round(readyImage.h * readyImage.resource.w / readyImage.resource.h)
+                readyImage.w = Math.round(readyImage.h * imgW / imgH)
                 readyImage.x = -Math.round(((readyImage.w - uiImage.container.w) / 2 )) - sidePadding
                 
             } else {
@@ -65,7 +73,7 @@ px.import({
                 readyImage.w = cropper.w
 
                 // now need to determine how much more to scale
-                readyImage.h = Math.round(readyImage.w * readyImage.resource.h / readyImage.resource.w)
+                readyImage.h = Math.round(readyImage.w * imgH / imgW)
                 readyImage.y = -Math.round(((readyImage.h - uiImage.container.h) / 2 )) - topPadding                   
             }
 

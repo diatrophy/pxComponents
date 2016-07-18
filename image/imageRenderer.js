@@ -33,7 +33,7 @@ px.import({
                 else {
 
                     var image = scene.create(uiImage.config)
-                
+
                     return image.ready.then(function(image){
                         console.log('image is loaded')
                         uiImage['image'] = image 
@@ -72,14 +72,24 @@ px.import({
                     }
                 }
 
-                // first create the container
+                // first create the container, NOTE - this creates an 'object' type pxscene object
+                // so it will not be visible. It is merely a container
                 var container = scene.create(uiImage.config)
+
                 uiImage['container'] = container
 
                 preEffects.forEach(applyEffectFunction)
 
                 // then create the image, with the container above as parent
                 var imageConfig = {t:'image',url:uiImage.config.url,parent:container}
+                // if the image is a rectangle then use the original config
+                if (uiImage.originalT == 'rect'){
+                    imageConfig.w = uiImage.config.w
+                    imageConfig.h = uiImage.config.h
+                    imageConfig.t = 'rect'
+                    imageConfig.parent = container
+                }
+
                 var defaultImageConfig = {t:'image',url:defaultUrl,parent:container}
 
                 if (uiImage.config.w && uiImage.config.h) {
@@ -108,9 +118,6 @@ px.import({
                     // we determine the containers scale here, to avoid re-calculating it when
                     // applying callbacks for all the effects
                     var scale = (container.sx<container.sy)?container.sx:container.sy;
-
-                    if (callbackList.length == 0)
-                        console.log("callbackList is empty")
 
                     callbackList.forEach(function(element,index,array){
                         element(uiImage,scale)

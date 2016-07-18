@@ -9,19 +9,16 @@ px.import({
 
     module.exports =  function(scene,uiImage,callbackList) {
 
+        var effects = uiImage.effects.effects
+
         var border = scene.create({       // create a rectangle to simulate a border
             t:"rect",
             parent:uiImage['container'],
-            fillColor:0xF8F8F8FF,
-            lineColor:0xCCCCCC80,
-            a:0,
-            lineWidth:0})   
+            fillColor:effects['border'].borderColor,
+            a:0})   
 
         uiImage["border"] = border
 
-        var effects = uiImage.effects.effects
-        var padding = effects['border'].padding
-        console.log(padding)
 
         // register a callback to re-size the border frame after the image has been rendered
         callbackList.push(function(uiImage,scale){
@@ -32,9 +29,10 @@ px.import({
             // var padding = constants.border.padding 
 
             // polaroid is scaled to match the scale of the rendered image
-            border.x = border.y = -1 * padding
-            border.w = uiImage.config.w + (padding * 2)
-            border.h = uiImage.config.h + (padding * 2)
+            border.x = -1 * effects['border'].lPadding
+            border.y = -1 * effects['border'].tPadding
+            border.w = uiImage.config.w + effects['border'].lPadding + effects['border'].rPadding
+            border.h = uiImage.config.h + effects['border'].tPadding + effects['border'].bPadding
             border.a = 1          // make the border effect visible
         })    
     }

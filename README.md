@@ -9,7 +9,7 @@ A framework for using [pxscene](http://www.pxscene.org/)
 pxComponents simplifies the creation of pxscene objects like **Image** and helps add effects and animation
 
     // image rendered with polaroid, drop shadow and top shadow
-    var p1 = pxImageRenderer.render(pxImage({url:photoUrl,parent:root,x:50,y:50,sx:0.10,sy:0.10})
+    var p1 = imageRenderer.render(image({url:photoUrl,parent:root,x:50,y:50,sx:0.10,sy:0.10})
                 .addEffects(pxImageEffects()
                   .polaroid(shadowUrl)
                   .topShadow(bgDropShadowUrl)
@@ -21,15 +21,4 @@ pxComponents simplifies the creation of pxscene objects like **Image** and helps
 # Common Documentation locations -
 
 - http://johnrobinsn.github.io/pxScene2d/docs/
-
-# TODO
-
-- shadow images can be hosted at pxComponents and loaded in via a url
-
-# Missing documentation 
-- rx,rz         
-- moveToFront
-
-# Open Questions
-- Do Remote key codes correspond to keyboard key codes ?
 

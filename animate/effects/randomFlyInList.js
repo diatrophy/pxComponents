@@ -41,7 +41,8 @@ px.import({
                         if (animateStack.length > config.maxImagesOnScreen - 1) {
                             var container = animateStack.shift()
                             fadeout(container,scene,function(c){
-                                c.remove()
+                                c.remove();
+                                c = null;
                             })
                         }
                     }

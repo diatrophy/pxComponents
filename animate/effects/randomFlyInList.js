@@ -42,6 +42,7 @@ px.import({
                             var container = animateStack.shift()
                             fadeout(container,scene,function(c){
                                 c.remove();
+                                console.log(">>>>> setting c to null");
                                 c = null;
                             })
                         }

@@ -13,26 +13,32 @@ px.import({
         image = imports.image,
         imageEffects = imports.imageEffects
      
+    var animationSpeed = 0.50
+
     module.exports = function(scene) {
 
         var imageRenderer = imports.imageRenderer(scene)
+        var borderWidth = 1
 
         return {
             
-            init : function(container,channelList,width,tileHeight) {
+            init : function(container,channelList,width,tileHeight
+                    ,currentCell) {             // this is the channel that the user is currently viewing
 
                 this.channelList = channelList
-                // Detail widgets
+                this.currentYLoc = -1 * (currentCell * (tileHeight + borderWidth))
+                // initialize a scrolling container to hold the scroll list
                 var dtl = scene.create({
                             // a : 0,
                             t : "rect",
+                            y : this.currentYLoc,    // position the scrolling list at the current cell
                             parent : container,  
                             w : width, 
-                            h : container.h, 
-                            clip:true});
-                this.dtl = dtl;
+                            h : tileHeight * channelList.length, 
+                            clip:false});
+                this.scrollingContainer = dtl;
                 this.tileHeight = tileHeight
-
+                this.currentCell = currentCell
                 return this;
             },
             tileRenderFunction : function(func) {
@@ -42,15 +48,14 @@ px.import({
             },
             render  : function(callback) {
 
-                var borderWidth = 1
     
-                var dtl = this.dtl
+                var dtl = this.scrollingContainer
 
                 var tileH = this.tileHeight,
-                    xOffset = 0.29 * dtl.w,
+                    xOffset = 0.29 * dtl.w,     // the channel tile is offsetted within the list container (probably should be configurable)
                     yOffset = borderWidth
 
-                var channelW = dtl.w-xOffset-1
+                var channelW = dtl.w-xOffset    // width of the tile determined after taking into account the offset and border
 
                 var f   = this.tileRenderFunction,
                     channelList = this.channelList
@@ -63,13 +68,20 @@ px.import({
                         w:channelW,h:channelH,data:channelList[i]})
                         .addEffects(imageEffects().border(borderWidth,borderWidth,0,1,0x555555FF))
                         ,function(channelTile){
-                            f(channelTile)    
+                            f(channelTile)   
                     })
 
                     yOffset += channelH + borderWidth
                 }
 
                 callback()
+            },
+            // updates the position of the scrolling list. scrollYOffset is the offset that the list should scroll to
+            update : function(scrollYOffset) {
+                this.currentYLoc += scrollYOffset       // add the offset to the currentLocation
+                this.scrollingContainer.animateTo({
+                                y: this.currentYLoc, 
+                            },animationSpeed,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
             }
         }
     }

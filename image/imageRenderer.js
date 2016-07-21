@@ -35,7 +35,7 @@ px.import({
                     var image = scene.create(uiImage.config)
 
                     return image.ready.then(function(image){
-                        console.log('image is loaded')
+                        // console.log('image is loaded')
                         uiImage['image'] = image 
                         callback(uiImage)
                     })  

@@ -9,8 +9,8 @@ module.exports = function() {
       this.effects['topShadow'] = {url:url}
       return this
     },
-      // adds a drop shadow under the image
-      dropShadow   : function(url,size) {
+    // adds a drop shadow under the image
+    dropShadow   : function(url,size) {
       this.effects['dropShadow'] = {url:url,size:size}
       return this
     },

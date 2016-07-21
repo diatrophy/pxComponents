@@ -28,28 +28,29 @@ px.import({
 
                 var xOffset = xOffset == null ? 0 : xOffset
                 var xLoc    = cell.container.x + xOffset
-                var yLoc    = cell.container.y
+                var yLoc    = cell.container.y // - this.height - this.borderWidth
                 var t       = this
 
                 var container = scene.create({t:'object',parent:this.container,x:xLoc,y:yLoc-2})
 
                 // top line
                 imageRenderer.render(image({t:'rect',parent:container,fillColor:0xCCCCCCFF,a:1,
-                    y:yLoc,
+                    y:1,
                     w:cell.container.w,h:this.borderWidth}),function(top){
                     t['top'] = top
                 })
                             
                 // bottom line
                 imageRenderer.render(image({t:'rect',parent:container,fillColor:0xCCCCCCFF,a:1,
-                    y:yLoc+this.height + 1,w:cell.container.w,h:this.borderWidth}),function(bottom){
+                    y:this.height + 2,
+                    w:cell.container.w,h:this.borderWidth}),function(bottom){
                     t['bottom'] = bottom
                 })
 
                 this['selector'] = container
             },
             // handles updating the location of the selector
-            update : function(cell,xOffset) {
+            update : function(cell,xOffset,yOffset) {
 
                 if (cell == null)
                     return
@@ -57,17 +58,49 @@ px.import({
                 // update the location of the selector
                 var xOffset = xOffset == null ? 0 : xOffset
                 var xLoc = cell.container.x + xOffset                   // take into account an offset - if the encompassing obj has a side bar
-                var yLoc = cell.container.y - (this.borderWidth/2)      // take into account border
+                var yLoc = yOffset - (this.borderWidth/2)// + yOffset      // take into account border
 
                 // the width of the horizontal lines are resized
                 var t = this.top.image
                 var b = this.bottom.image
-                t.w = b.w = cell.container.w
+                // t.w = b.w = cell.container.w
+
+                this.top.image.animateTo({
+                    w:cell.container.w,
+                },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
+
+                this.bottom.image.animateTo({
+                    w:cell.container.w,
+                },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
 
                 // move the selector
-                this.selector.animateTo({
-                    x:xLoc,y:yLoc,w:cell.container.w,
-                },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
+                if (yOffset) {
+                    this.selector.animateTo({
+                        x:xLoc,y:yLoc,w:cell.container.w,
+                    },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
+                } else {
+                    this.selector.animateTo({
+                        x:xLoc,w:cell.container.w,
+                    },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
+                }
+            },
+            isAtBottom : function() {
+                if (this.selector.y + this.height * 1.5 >this.container.h)
+                    return true
+                else
+                    return false
+            },
+            isAtTop : function() {
+                if (this.selector.y - this.height * 1.5 < 0)
+                    return true
+                else
+                    return false
+            },
+            isAtRightMost : function() {
+                if (this.selector.x + this.selector.w + 5 > this.container.w)
+                    return true
+                else
+                    return false
             }
         }
     }

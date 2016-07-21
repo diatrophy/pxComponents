@@ -22,3 +22,7 @@ pxComponents simplifies the creation of pxscene objects like **Image** and helps
 
 - http://johnrobinsn.github.io/pxScene2d/docs/
 
+# Convention
+
+functions that begin with underscore are 'private' functions
+

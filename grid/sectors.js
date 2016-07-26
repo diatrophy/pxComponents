@@ -17,31 +17,31 @@ px.import({
             container:null,
             currentSector:null,
             // Adds a new sector above the current sector
-            extendUp : function() {
-                var newSectorYLoc = this.currentSector.container.y-this.container.h - this.borderWidth
-                var newSectorXLoc = this.currentSector.container.x
+            extendUp : function(relativeSector) {
+                var newSectorYLoc = relativeSector.container.y-this.container.h - this.borderWidth
+                var newSectorXLoc = relativeSector.container.x
                 var sector = scene.create({t:'object',parent:this.container,a:1,w:this.container.w,
                     y:newSectorYLoc, x:newSectorXLoc, h:this.container.h})
-                this.currentSector.top = {container:sector,bottom:this.currentSector}
-                return this.currentSector.top
+                relativeSector.top = {container:sector,bottom:relativeSector}
+                return relativeSector.top
             },
             // Adds a new sector below the current sector
-            extendDown : function() {
-                var newSectorYLoc = this.currentSector.container.y+this.container.h + this.borderWidth
-                var newSectorXLoc = this.currentSector.container.x
+            extendDown : function(relativeSector) {
+                var newSectorYLoc = relativeSector.container.y+this.container.h + this.borderWidth
+                var newSectorXLoc = relativeSector.container.x
                 var sector = scene.create({t:'object',parent:this.container,a:1,w:this.container.w,
                     y:newSectorYLoc, x:newSectorXLoc, h:this.container.h})
-                this.currentSector.bottom = {container:sector,top:this.currentSector}
-                return this.currentSector.bottom
+                relativeSector.bottom = {container:sector,top:relativeSector}
+                return relativeSector.bottom
             },
             // Adds a new sector to the right of the current sector
-            extendRight : function() {
-                var newSectorYLoc = this.currentSector.container.y
-                var newSectorXLoc = this.currentSector.container.x + this.container.w
+            extendRight : function(relativeSector) {
+                var newSectorYLoc = relativeSector.container.y
+                var newSectorXLoc = relativeSector.container.x + this.container.w
                 var sector = scene.create({t:'object',parent:this.container,a:1,w:this.container.w,
                     x:newSectorXLoc,y:newSectorYLoc, h:this.container.h})
-                this.currentSector.right = {container:sector,left:this.currentSector}
-                return this.currentSector.right
+                relativeSector.right = {container:sector,left:relativeSector}
+                return relativeSector.right
             },
             // initialize the sectors object
             init : function(parent,borderWidth) {

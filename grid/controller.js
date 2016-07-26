@@ -27,8 +27,11 @@ px.import({
                     return cell.config.topCell
             },
             getCurrentProgramViewPortY : function(){
-                console.log("-----Parent ------" + this.currentCell.container.parent.parent)
                 return this.currentCell.container.parent.y + this.currentCell.container.y - (-1 * this.currentCell.container.parent.parent.y)
+            },
+            getCurrentProgramViewPortX : function(){
+                return this.currentCell.container.x
+                // return this.currentCell.container.parent.y + this.currentCell.container.y - (-1 * this.currentCell.container.parent.parent.y)
             },
             // determines if the currently selected cell is in a bottom row of the view port
             _currentCellIsAtBottomRow : function() {
@@ -37,12 +40,13 @@ px.import({
             },
             // determines if the currently selected cell is in a top row of the view port
             _currentCellIsAtTopRow : function() {
-                console.log('----top')
                 var y = this.getCurrentProgramViewPortY() - this.tileH *0.5
                 return y < 0
             },
             // determines if the currently selected cell is at the right-most part of the screen
             _currentCellIsAtRightColumn : function() {
+                // var x = this.getCurrentProgramViewPortX()
+
                 return this.currentCell.config.rightColumn
             },
             // determines if the currently selected cell is at the left-most part of the screen
@@ -169,18 +173,20 @@ px.import({
                         // TODO - Destroy old sectors - come up with strategy
 
                         if (loadNeighborDirection != null) {
+                            var relativeSector = uiGrid.sectors.currentSector
+                            var relativeScrollingSector = uiScrollingList.currentSector
                             t.loadNeighbor(t.currentRow, loadNeighborDirection, function (topData,bottomData,rightData) {
                                 if (loadNeighborDirection == "top") {
-                                    uiGrid.addTopSector(topData)
-                                    uiGrid.addRightSector(rightData)
-                                    uiScrollingList.addTopSector()
+                                    uiGrid.addTopSector(topData,relativeSector)
+                                    uiGrid.addRightSector(rightData,relativeSector)
+                                    uiScrollingList.addTopSector(relativeScrollingSector)
                                 } else if (loadNeighborDirection == "bottom") {
-                                    uiGrid.addBottomSector(bottomData)
-                                    uiGrid.addRightSector(rightData)
-                                    uiScrollingList.addBottomSector()
+                                    uiGrid.addBottomSector(bottomData,relativeSector)
+                                    uiGrid.addRightSector(rightData,relativeSector)
+                                    uiScrollingList.addBottomSector(relativeScrollingSector)
                                 } else if (loadNeighborDirection == "right") {
-                                    uiGrid.addRightSector(rightData)
-                                    uiGrid.addTopSector(topData)
+                                    uiGrid.addRightSector(rightData,relativeSector)
+                                    uiGrid.addTopSector(topData,relativeSector)
                                     uiGrid.addBottomSector(bottomData)
                                 }
                             })
@@ -201,6 +207,7 @@ px.import({
                             } else if (pageScroll == 'pageup') {
                                 scrollY = -1 * (scrollY + container.h )   // move the page one whole page up
                             } else if (pageScroll == 'right') {
+                                // scrollX = scrollX - containerGrid.w/5
                                 scrollX = scrollX - containerGrid.w                     // scroll the grid one whole container width right
                             } else if (pageScroll == 'left') {
                                 scrollX = scrollX + containerGrid.w                     // scroll the grid one whole container width right

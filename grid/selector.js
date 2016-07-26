@@ -83,24 +83,6 @@ px.import({
                         x:xLoc,w:cell.container.w,
                     },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
                 }
-            },
-            isAtBottom : function() {
-                if (this.selector.y + this.height * 1.5 >this.container.h)
-                    return true
-                else
-                    return false
-            },
-            isAtTop : function() {
-                if (this.selector.y - this.height * 1.5 < 0)
-                    return true
-                else
-                    return false
-            },
-            isAtRightMost : function() {
-                if (this.selector.x + this.selector.w + 5 > this.container.w)
-                    return true
-                else
-                    return false
             }
         }
     }

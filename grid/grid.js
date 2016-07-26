@@ -283,9 +283,9 @@ px.import({
 
                 this.proximitySearch(cells,this.listingDataInView)
 
-                this.addTopSector(this.listingDataTop)
-                this.addBottomSector(this.listingDataBottom)
-                this.addRightSector(this.listingDataRight)
+                this.addTopSector(this.listingDataTop,sectorCurrent)
+                this.addBottomSector(this.listingDataBottom,sectorCurrent)
+                this.addRightSector(this.listingDataRight,sectorCurrent)
 
                 // Render the cells
                 imageRenderer.renderList(cells,function(channelTile){
@@ -309,25 +309,25 @@ px.import({
                 return cells
             },
             // Adds a sector above the current sector and populates it with cells containing the listing data
-            addTopSector : function(data) {
+            addTopSector : function(data,relativeSector) {
 
-                var sector = this.sectors.extendUp()
+                var sector = this.sectors.extendUp(relativeSector)
                 var cells = this._addCellsToSector(data,sector)
-                this.bottomStitchSectors(cells,data,this.sectors.currentSector.cells,this.sectors.currentSector.data)
+                this.bottomStitchSectors(cells,data,relativeSector.cells,relativeSector.data)
             },
             // Adds a sector below the current sector and populates it with cells containing the listing data
-            addBottomSector : function(data) {
+            addBottomSector : function(data,relativeSector) {
 
-                var sector = this.sectors.extendDown()
+                var sector = this.sectors.extendDown(relativeSector)
                 var cells = this._addCellsToSector(data,sector)
-                this.bottomStitchSectors(this.sectors.currentSector.cells,this.sectors.currentSector.data,cells,data)
+                this.bottomStitchSectors(relativeSector.cells,relativeSector.data,cells,data)
             },
             // Adds a sector to the right of the current sector and populates it with cells containing the listing data
-            addRightSector : function(data) {
+            addRightSector : function(data,relativeSector) {
 
-                var sector = this.sectors.extendRight()
+                var sector = this.sectors.extendRight(relativeSector)
                 var cells = this._addCellsToSector(data,sector)
-                this.sideStitchSectors(this.sectors.currentSector.cells,cells)
+                this.sideStitchSectors(relativeSector.cells,cells)
             }
         }
     }

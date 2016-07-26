@@ -77,8 +77,8 @@ px.import({
                 }
 
                 this.currentSector = this._addSector(channelList.slice(cellsPerSector,2*cellsPerSector),0)
-                this.addTopSector()
-                this.addBottomSector()
+                this.addTopSector(this.currentSector)
+                this.addBottomSector(this.currentSector)
 
                 callback(channelList)
             },
@@ -111,7 +111,7 @@ px.import({
                 })
                 return {container:sector}
             },
-            addTopSector : function() {
+            addTopSector : function(relativeSector) {
                 var channelList = []
 
                 var start = this.topCell - cellsPerSector
@@ -131,12 +131,12 @@ px.import({
                     this.topCell -= cellsPerSector
 
                 }
-                var sectorYOffset = this.currentSector.container.y - this.currentSector.container.h
+                var sectorYOffset = relativeSector.container.y - relativeSector.container.h
                 var sector = this._addSector(channelList,sectorYOffset)
-                this.currentSector.top = sector
-                sector.bottom = this.currentSector
+                relativeSector.top = sector
+                sector.bottom = relativeSector
             },
-            addBottomSector : function() {
+            addBottomSector : function(relativeSector) {
                 var channelList = []
                 var end = this.bottomCell + cellsPerSector
                 if (end > this.allChannelList.length) {
@@ -153,9 +153,9 @@ px.import({
                     }
                     this.bottomCell += cellsPerSector
                 }
-                var sector = this._addSector(channelList,this.currentSector.container.y + this.currentSector.container.h)
-                this.currentSector.bottom = sector
-                sector.top = this.currentSector
+                var sector = this._addSector(channelList,relativeSector.container.y + relativeSector.container.h)
+                relativeSector.bottom = sector
+                sector.top = relativeSector
             }
         }
     }

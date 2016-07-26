@@ -14,7 +14,6 @@ px.import({
 
         var DEFAULT_TIME_GROUPS = 6.5
         var imageRenderer = imports.imageRenderer(scene)
-        var font = scene.create({t:"fontResource",url:"http://www.pxscene.org/examples/px-reference/fonts/IndieFlower.ttf"});
 
         return {
             
@@ -39,18 +38,34 @@ px.import({
                 var container = scene.create({t:'object',parent:this.container,x:xOffset,y:0})
                 var wid = Math.round(this.container.w / this.timeGroups)
 
+                var startDate = new Date()
+                var min = startDate.getMinutes() < 30 ? 0 : 30
+                startDate.setMinutes(min)
+
                 var timeOffset = 0
+                var timeCells = []
                 for (var i =0; i<this.timeGroups; i++) {
                     // top line
-                    imageRenderer.render(image({t:'rect',parent:container,a:1,
+                    timeCells.push(image({t:'rect',parent:container,a:1,
                         x:timeOffset,
                         y:0,
                         w:wid,
-                        h:this.container.h}),function(timeTile){
-                            t.tileRenderFunction(timeTile,"1:20")
-                    })
+                        h:this.container.h,
+                        data:{startDate:startDate}}))
+
+                    startDate = new Date(startDate.getTime()+(30*60*1000));
+
                     timeOffset += wid
                 }
+
+                imageRenderer.renderList(timeCells,function(timeTile){
+                    var startDate = timeTile.config.data.startDate
+                    var min = startDate.getMinutes() == 0 ? "00" : startDate.getMinutes()
+                    t.tileRenderFunction(timeTile, startDate.getHours() + ":" + min)
+                },function(){
+                    // do nothing
+                })
+
 
                 this['selector'] = container
             },

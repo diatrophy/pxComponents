@@ -6,11 +6,11 @@ px.import({
     imageRenderer   : '../image/imageRenderer.js',
     image           : '../image/image.js',
     imageEffects    : '../image/imageEffects.js',
-    math            : '../math.js'
+    math            : '../math.js',
+    sectors         : 'sectors.js'
 }).then(function importsAreReady(imports) {
 
-    var math = imports.math(),
-        image = imports.image,
+    var image = imports.image,
         imageEffects = imports.imageEffects
 
     var borderWidth = 1
@@ -21,7 +21,7 @@ px.import({
         var imageRenderer = imports.imageRenderer(scene)
 
         return {
-            
+            sectors : imports.sectors(scene),
             init : function(listingDataInView,listingDataBottom,listingDataTop,listingDataRight,container,tileHeight) {
                 this.container = container
                 this.tileHeight = tileHeight
@@ -29,7 +29,6 @@ px.import({
                 this.listingDataBottom = listingDataBottom
                 this.listingDataRight = listingDataRight
                 this.listingDataTop = listingDataTop
-                this.cells = []
                 return this
             },
             // handler for the individual cell
@@ -73,7 +72,7 @@ px.import({
                         xOffset += wid              // onto the next cell in the row
                     })
 
-                    yOffset += tileH + borderWidth  // onto the next row
+                    yOffset += tileH // + borderWidth  // onto the next row
                 })
 
                 return cells
@@ -135,10 +134,11 @@ px.import({
 
                         // logic for setting the prev and next cell
                         var currentCell = cells[cellCount]
-                        
+
+                        // determine left/right columns, in some cases left == right
                         if (columnCount == 0)
                             currentCell.config.leftColumn = true
-                        else if (columnCount == row.length-1)
+                        if (columnCount == row.length-1)
                             currentCell.config.rightColumn = true
 
                         // the prev cell is aware of the next cell in the list and vice-versa
@@ -243,11 +243,11 @@ px.import({
                 this.proximitySearchTopBottom(bottomRow.concat(topRow),data)
             },
              // takes 2 sectors and creates relationships between the prev and next row of the containers next to each other
-            sideStitchSectors : function(leftCells,leftData,rightCells,rightData){
+            sideStitchSectors : function(leftCells,rightCells){
                 
                 var leftColumn = []
                 for (var i = 0; i < leftCells.length; i++) {         // TODO - OPTIMIZE - don't need to traverse whole array
-                    if (leftCells[i].config.rightColumn)                // should traverse in reverse order and then flip the result
+                    if (leftCells[i].config.rightColumn)             // should traverse in reverse order and then flip the result
                         leftColumn.push(leftCells[i])
                 }
                 var rightColumn = []
@@ -263,7 +263,7 @@ px.import({
                         rightColumn[i].config.prevCell = leftColumn[i]
                     }
                 } else {
-                    console.log('mismatched columns' + rightColumn.length +"---" + leftColumn.length)
+                    console.log('mismatched columns' + leftColumn.length +"----"+rightColumn.length +"---" )
                 }
             },
             render : function(callback){
@@ -272,41 +272,62 @@ px.import({
 
                 var f = this.tileRenderFunction             // pre-declare the function so that it is reachable in the function
 
-                var sectorCurrent = scene.create({t:'object',parent:c,a:1,w:c.w})
-                var sectorBottom = scene.create({t:'object',parent:c,a:1,w:c.w,y:c.h - 3* borderWidth})
-                var sectorTop = scene.create({t:'object',parent:c,a:1,w:c.w,y:-1*(c.h - 3 * borderWidth)})
-                var sectorRight = scene.create({t:'object',parent:c,a:1,w:c.w,x:c.w})
+                this.sectors.init(c,borderWidth)
 
-                sectorCurrent.bottom = sectorBottom
-                sectorCurrent.right = sectorRight
-                sectorBottom.top = sectorCurrent
+                var sectorCurrent = this.sectors.currentSector
 
-                var cells = this.convertListingDataInViewToCells(this.listingDataInView,sectorCurrent,c.w)
-                var cellsBottom = this.convertListingDataInViewToCells(this.listingDataBottom,sectorBottom,c.w)
-                var cellsTop = this.convertListingDataInViewToCells(this.listingDataTop,sectorTop,c.w)
-                var cellsRight = this.convertListingDataInViewToCells(this.listingDataRight,sectorRight,c.w)
+                var cells = this.convertListingDataInViewToCells(this.listingDataInView,sectorCurrent.container,c.w)
 
-                this.cells = cells
+                this.sectors.currentSector.cells = cells
+                this.sectors.currentSector.data = this.listingDataInView
+
                 this.proximitySearch(cells,this.listingDataInView)
-                this.proximitySearch(cellsBottom,this.listingDataBottom)
-                this.proximitySearch(cellsTop,this.listingDataTop)
-                this.proximitySearch(cellsRight,this.listingDataRight)
-                this.bottomStitchSectors(cells,this.listingDataInView,cellsBottom,this.listingDataBottom)
-                this.bottomStitchSectors(cellsTop,this.listingDataTop,cells,this.listingDataInView)
-                this.sideStitchSectors(cells,this.listingDataInView,cellsRight,this.listingDataRight)
+
+                this.addTopSector(this.listingDataTop,sectorCurrent)
+                this.addBottomSector(this.listingDataBottom,sectorCurrent)
+                this.addRightSector(this.listingDataRight,sectorCurrent)
 
                 // Render the cells
-                imageRenderer.renderList(cells.concat(cellsBottom).concat(cellsTop).concat(cellsRight),function(channelTile){
-                        f(channelTile)              // invoke the rendering function
+                imageRenderer.renderList(cells,function(channelTile){
+                    f(channelTile)                          // invoke the rendering function
                 },function(){
-                     callback() 
+                    callback(cells[0])
                 })
             },
-            addGridAbove : function(cell,callback) {
-                // TODO
+            _addCellsToSector : function(data,sector){
+                var cells = this.convertListingDataInViewToCells(data,sector.container,this.container.w)
+                this.proximitySearch(cells,data)
+                sector.cells = cells
+                sector.data = data
+
+                var f = this.tileRenderFunction             // pre-declare the function so that it is reachable in the function
+                // Render the cells
+                imageRenderer.renderList(cells,function(tile){
+                    f(tile)                                 // invoke the rendering function
+                },function(){
+                })
+                return cells
             },
-            addGridBelow : function(cell,callback) {
-                // TODO
+            // Adds a sector above the current sector and populates it with cells containing the listing data
+            addTopSector : function(data,relativeSector) {
+
+                var sector = this.sectors.extendUp(relativeSector)
+                var cells = this._addCellsToSector(data,sector)
+                this.bottomStitchSectors(cells,data,relativeSector.cells,relativeSector.data)
+            },
+            // Adds a sector below the current sector and populates it with cells containing the listing data
+            addBottomSector : function(data,relativeSector) {
+
+                var sector = this.sectors.extendDown(relativeSector)
+                var cells = this._addCellsToSector(data,sector)
+                this.bottomStitchSectors(relativeSector.cells,relativeSector.data,cells,data)
+            },
+            // Adds a sector to the right of the current sector and populates it with cells containing the listing data
+            addRightSector : function(data,relativeSector) {
+
+                var sector = this.sectors.extendRight(relativeSector)
+                var cells = this._addCellsToSector(data,sector)
+                this.sideStitchSectors(relativeSector.cells,cells)
             }
         }
     }

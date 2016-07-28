@@ -34,7 +34,7 @@ px.import({
             });
             mySocket.on('message', function(message) {
                 console.log('received: %s', message) // comment out to prevent noise
-                if (returnMsg.length >= 0) {
+                if (Array.isArray(returnMsg) && returnMsg.length >= 0) {
                     returnMsg.push(message)
                     if (returnMsg.length == urls.length)
                         mySocket.close()

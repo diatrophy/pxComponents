@@ -131,7 +131,7 @@ px.import({
                     this.topCell -= cellsPerSector
 
                 }
-                var sectorYOffset = relativeSector.container.y - relativeSector.container.h
+                var sectorYOffset = relativeSector.container.y - relativeSector.container.h - borderWidth
                 var sector = this._addSector(channelList,sectorYOffset)
                 relativeSector.top = sector
                 sector.bottom = relativeSector
@@ -153,7 +153,7 @@ px.import({
                     }
                     this.bottomCell += cellsPerSector
                 }
-                var sector = this._addSector(channelList,relativeSector.container.y + relativeSector.container.h)
+                var sector = this._addSector(channelList,relativeSector.container.y + relativeSector.container.h + borderWidth)
                 relativeSector.bottom = sector
                 sector.top = relativeSector
             }

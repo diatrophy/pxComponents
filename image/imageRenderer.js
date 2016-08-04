@@ -32,13 +32,17 @@ px.import({
                     return this._renderWithEffects(uiImage, callback)
                 else {
 
-                    var image = scene.create(uiImage.config)
+                    if (uiImage.config != null) {
+                        var image = scene.create(uiImage.config)
 
-                    return image.ready.then(function(image){
-                        // console.log('image is loaded')
-                        uiImage['image'] = image 
-                        callback(uiImage)
-                    })  
+                        return image.ready.then(function (image) {
+                            // console.log('image is loaded')
+                            uiImage['image'] = image
+                            callback(uiImage)
+                        })
+                    } else {
+                        console.log('image with missing config')
+                    }
                 }         
             },
             // renders a list of images

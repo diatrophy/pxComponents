@@ -50,20 +50,13 @@ px.import({
                 this['selector'] = container
             },
             // handles updating the location of the selector
-            update : function(cell,xOffset,yOffset) {
+            update : function(cell,xLoc,yOffset) {
 
                 if (cell == null)
                     return
 
                 // update the location of the selector
-                var xOffset = xOffset == null ? 0 : xOffset
-                var xLoc = cell.container.x + xOffset                   // take into account an offset - if the encompassing obj has a side bar
-                var yLoc = yOffset - (this.borderWidth/2)// + yOffset      // take into account border
-
-                // the width of the horizontal lines are resized
-                var t = this.top.image
-                var b = this.bottom.image
-                // t.w = b.w = cell.container.w
+                var yLoc = yOffset - (this.borderWidth/2)      // take into account border
 
                 this.top.image.animateTo({
                     w:cell.container.w,
@@ -74,11 +67,11 @@ px.import({
                 },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
 
                 // move the selector
-                if (yOffset) {
+                if (yOffset != null) {
                     this.selector.animateTo({
                         x:xLoc,y:yLoc,w:cell.container.w,
                     },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)
-                } else {
+                } else if (xLoc != null) {
                     this.selector.animateTo({
                         x:xLoc,w:cell.container.w,
                     },0.50,scene.animation.TWEEN_STOP,scene.animation.OPTION_LOOP, 1)

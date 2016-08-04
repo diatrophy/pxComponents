@@ -17,20 +17,20 @@ px.import({
             container:null,
             currentSector:null,
             // Adds a new sector above the current sector
-            extendUp : function(relativeSector) {
-                var newSectorYLoc = relativeSector.container.y-this.container.h - this.borderWidth
+            extendUp : function(relativeSector,id) {
+                var newSectorYLoc = relativeSector.container.y - this.sectorHeight - this.borderWidth
                 var newSectorXLoc = relativeSector.container.x
                 var sector = scene.create({t:'object',parent:this.container,a:1,w:this.container.w,
-                    y:newSectorYLoc, x:newSectorXLoc, h:this.container.h})
-                relativeSector.top = {container:sector,bottom:relativeSector}
+                    y:newSectorYLoc, x:newSectorXLoc, h:this.sectorHeight})
+                relativeSector.top = {container:sector,bottom:relativeSector,id:id}
                 return relativeSector.top
             },
             // Adds a new sector below the current sector
             extendDown : function(relativeSector) {
-                var newSectorYLoc = relativeSector.container.y+this.container.h + this.borderWidth
+                var newSectorYLoc = relativeSector.container.y + this.sectorHeight  + this.borderWidth
                 var newSectorXLoc = relativeSector.container.x
                 var sector = scene.create({t:'object',parent:this.container,a:1,w:this.container.w,
-                    y:newSectorYLoc, x:newSectorXLoc, h:this.container.h})
+                    y:newSectorYLoc, x:newSectorXLoc, h:this.sectorHeight})
                 relativeSector.bottom = {container:sector,top:relativeSector}
                 return relativeSector.bottom
             },
@@ -39,16 +39,19 @@ px.import({
                 var newSectorYLoc = relativeSector.container.y
                 var newSectorXLoc = relativeSector.container.x + this.container.w
                 var sector = scene.create({t:'object',parent:this.container,a:1,w:this.container.w,
-                    x:newSectorXLoc,y:newSectorYLoc, h:this.container.h})
+                    x:newSectorXLoc,y:newSectorYLoc, h:this.sectorHeight})
                 relativeSector.right = {container:sector,left:relativeSector}
                 return relativeSector.right
             },
             // initialize the sectors object
-            init : function(parent,borderWidth) {
+            init : function(parent,borderWidth,sectorHeight) {
 
                 this.container = parent
                 this.borderWidth = borderWidth
-                this.currentSector = {container:scene.create({t:'object',parent:parent,a:1,w:parent.w})}
+                this.sectorHeight = sectorHeight
+                this.currentSector = {container:scene.create({t:'object',parent:parent,a:1,w:parent.w,h:sectorHeight})}
+
+                return this.currentSector
             }
         }
 

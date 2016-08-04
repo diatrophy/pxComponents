@@ -22,9 +22,6 @@ px.import({
 
     var ws = imports.ws
 
-    // TODO - remove in PROD enviroment
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
-
     // requests contents of a dataservice via a websocket
     module.exports =  function(requests,websocketUrl) {
 
@@ -49,7 +46,7 @@ px.import({
                 }
             });
             mySocket.on('message', function(message) {
-                console.log('received: %s', message) // comment out to prevent noise
+                // console.log('received: %s', message) // comment out to prevent noise
                 if (Array.isArray(returnMsg) && returnMsg.length >= 0) {
                     returnMsg.push(message)
                     if (returnMsg.length == requests.length)
@@ -60,6 +57,8 @@ px.import({
                 }
             });
             mySocket.on('close', function() {
+                console.log('done requests')
+                console.log(returnMsg)
                 resolve(returnMsg)
                 console.log('closing socket');
             });

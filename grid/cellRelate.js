@@ -5,31 +5,16 @@
 // Jason Coelho
 
 px.import({
-    imageRenderer   : '../image/imageRenderer.js',
-    image           : '../image/image.js',
-    imageEffects    : '../image/imageEffects.js',
     math            : '../math.js',
-    sectors         : 'sectors.js'
+    gridHelper      : 'gridHelper.js'
 }).then(function importsAreReady(imports) {
 
-    var image = imports.image,
-        imageEffects = imports.imageEffects
-
-    var borderWidth = 1
-    var DEFAULT_BUCKET_SIZE = 2
+    var gridHelper = imports.gridHelper(),
+        DEFAULT_BUCKET_SIZE = gridHelper.DEFAULT_BUCKET_SIZE
 
     module.exports = function () {
 
         return {
-            // method to determine how many buckets are in a percentage range
-            // Example - if the bucket size is 5, 5% = 1 bucket
-            _calculateNumberOfCellBuckets: function (percentage) {
-
-                var buckets = 1        // default to 1 bucket
-                if (percentage != null)
-                    buckets = Math.round(percentage / DEFAULT_BUCKET_SIZE)
-                return buckets
-            },
             proximitySearch : function(cells,listingDataInView){
 
                 // the following is a loose adaptation of a linear proximity search.
@@ -65,8 +50,6 @@ px.import({
                 var rowCount = 0
                 var cellCount = 0
                 var prevRowTrackerMap = null
-
-                var calculateNumberOfCellBuckets = this._calculateNumberOfCellBuckets    // localized reference
 
                 listingDataInView.forEach(function(row) {               // 1st loop - channels
 
@@ -105,7 +88,7 @@ px.import({
                         // lookup map for each bucket. buckets are numbered by DEFAULT_BUCKET_SIZE increments
                         // Cells can span across a sector(s), hence buckets max out at 100
                         // TODO - need to handle offset
-                        var currentCellBuckets = calculateNumberOfCellBuckets(currentCell.config.data.p)
+                        var currentCellBuckets = gridHelper.calculateNumberOfCellBuckets(currentCell.config.data.p,currentCell.config.data.o)
                         for (var i = 0; i < currentCellBuckets; i++) {
                             if (currentCellTrack < 100) {
                                 currentRowTrackerMap[currentCellTrack] = currentCell
@@ -152,18 +135,20 @@ px.import({
                 var cellCount = 0
                 var prevRowTrackerMap = null
 
-                var calculateNumberOfCellBuckets = this._calculateNumberOfCellBuckets
-
                 listingDataInView.forEach(function(row) {
 
                     var currentRowTrackerMap = {}
                     var currentCellTrack = DEFAULT_BUCKET_SIZE
 
+                    if (row.length == 0) {
+                        row.push({}) // push a dummy val so that the following loop executes
+                    }
+
                     row.forEach(function(cellData){
 
                         // logic for setting the prev and next cell
                         var currentCell = cells[cellCount]
-                        var currentCellBuckets = calculateNumberOfCellBuckets(currentCell.config.data.p)
+                        var currentCellBuckets = gridHelper.calculateNumberOfCellBuckets(currentCell.config.data.p,currentCell.config.data.o)
                         var nT = currentCellTrack
                         for (var i = 0; i < currentCellBuckets;i++) {
                             currentRowTrackerMap[currentCellTrack] = currentCell
@@ -226,7 +211,6 @@ px.import({
                     if (rightCells[i].config.leftColumn)
                         rightColumn.push(rightCells[i])
                     else if (rightCells[i].config.data.placeholder == true) {
-                        console.log(rightCells[i])
                         rightColumn.push(rightCells[i])
                     }
                 }
@@ -238,7 +222,7 @@ px.import({
                         rightColumn[i].config.prevCell = leftColumn[i]
                     }
                 } else {
-                    console.log('mismatched columns - ' + leftColumn.length +"----"+rightColumn.length +" --- " + "orignal lengths - " +
+                    console.log('mismatched columns - ' + leftColumn.length +"----"+rightColumn.length +" --- " + "original lengths - " +
                         leftCells.length +":" + rightCells.length)
                 }
             },

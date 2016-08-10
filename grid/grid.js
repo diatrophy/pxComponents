@@ -8,15 +8,16 @@ px.import({
     imageEffects    : '../image/imageEffects.js',
     math            : '../math.js',
     sectors         : 'sectors.js',
-    cellRelate      : 'cellRelate.js'
+    cellRelate      : 'cellRelate.js',
+    gridHelper      : 'gridHelper.js'
 }).then(function importsAreReady(imports) {
 
     var image = imports.image,
         imageEffects = imports.imageEffects,
-        cellRelate = imports.cellRelate()
+        cellRelate = imports.cellRelate(),
+        gridHelper = imports.gridHelper()
 
     var borderWidth = 1
-    var DEFAULT_BUCKET_SIZE = 2
 
     module.exports = function(scene) {
 
@@ -45,69 +46,6 @@ px.import({
                 this.tileSelected = func
                 return this
             },
-            // takes an matrix of listings (an array for each channel) and converts this to a single array of cells
-            convertListingDataInViewToCells : function(listingDataInView,container,width){
-                
-                var cells = [],                 // array to return
-                    tileH = this.tileHeight,    // for use in an inner function
-                    yOffset = borderWidth,      // starting offset along the y-axis
-                    c = container               // for use in an inner function
-
-                // since the data contains the pre-calculated percentage (complexity else-where) we can easily determine the width
-                var calculateCellWidth = function(percentage) {
-
-                    var wid = DEFAULT_BUCKET_SIZE        // default to DEFAULT_BUCKET_SIZE % if the percentage data is missing 
-                    if (percentage != null)
-                        wid = (width * percentage) / 100
-                    return wid
-                }
-
-                // use 2 nested loops to go through the matrix of listings and generate cells
-                listingDataInView.forEach(function(row) {
-
-                    var xOffset = 0
-
-                    if (row.length == 0) {
-                        // push a single placeholder cell denoting the empty row. The reason for this is to support
-                        // proximity matching and side stitching of cells
-                        row.push({p:100,placeholder:true})
-                    }
-
-                    // loop through all the cells in the row
-                    row.forEach(function (cellData) {
-
-                        var wid = calculateCellWidth(cellData.p)
-                        if (cellData.o != null) {
-                            xOffset = cellData.o / 100 * container.w
-                        }
-
-                        var alpha = 1
-                        if (cellData.placeholder) {
-                            alpha = 0
-                        }
-
-                        // keep track of all the cells in a single array
-                        cells.push(image({
-                            t: 'rect',
-                            parent: c,
-                            fillColor: 0x33C866,
-                            a: alpha,
-                            x: xOffset,
-                            y: yOffset,
-                            w: wid,
-                            h: tileH,
-                            data: cellData
-                        })         // store the cell data in the image config
-                        .addEffects(imageEffects().border(borderWidth, borderWidth, 1, 1, 0x555555FF)))
-
-                        xOffset += wid              // onto the next cell in the row
-                    })
-
-                    yOffset += tileH // + borderWidth  // onto the next row
-                })
-
-                return cells
-            },
             render : function(callback){
 
                 var c = this.container
@@ -116,7 +54,7 @@ px.import({
 
                 var cells = this._addCellsToSector(this.listingDataInView,sectorCurrent,0)
 
-                this.addTopSector(this.listingDataTop,sectorCurrent,"rootTop")
+                this.addTopSector(this.listingDataTop,sectorCurrent)
                 this.addBottomSector(this.listingDataBottom,sectorCurrent)
                 this.addRightSector(this.listingDataRight,sectorCurrent)
                 this.addTopRightSector(this.listingDataTopRight,sectorCurrent)
@@ -127,9 +65,24 @@ px.import({
             // internal function that creates cells and adds them to a sector
             _addCellsToSector : function(data,sector,selectedIndex){
 
+                var cellFunction = function(container,alpha,xOffset,yOffset,wid,tileH,cellData){
+                    return image({
+                        t: 'rect',
+                        parent: container,
+                        fillColor: 0x33C866,
+                        a: alpha,
+                        x: xOffset,
+                        y: yOffset,
+                        w: wid,
+                        h: tileH,
+                        data: cellData // store the cell data in the image config
+                    }).addEffects(imageEffects().border(borderWidth, borderWidth, 1, 1, 0x555555FF))
+                }
+
                 // first convert the data to cells and then create relationships between cells
                 // also mark the cell matching the selectedIndex as `initial`
-                var cells = this.convertListingDataInViewToCells(data,sector.container,this.container.w)
+                var cells = gridHelper.convertListingDataInViewToCells(data,sector.container,this.container.w,this.tileHeight,cellFunction)
+
                 if (selectedIndex != null)
                     cells[selectedIndex].initialCell = true
 
@@ -156,9 +109,9 @@ px.import({
                 return cells
             },
             // Adds a sector above the current sector and populates it with cells containing the listing data
-            addTopSector : function(data,relativeSector,id) {
+            addTopSector : function(data,relativeSector) {
 
-                var sector = this.sectors.extendUp(relativeSector,id)
+                var sector = this.sectors.extendUp(relativeSector)
                 var cells = this._addCellsToSector(data,sector)
                 cellRelate.bottomStitchSectors(cells,data,relativeSector.cells,relativeSector.data)
                 return sector

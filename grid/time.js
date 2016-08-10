@@ -1,7 +1,7 @@
 // time.js
 //
 //
-// This component draws a timebar at the top of the screen
+// This component draws a time-bar at the top of the screen
 //
 // 1:00                1:30                  2:00                  2:30                  3:00                  3:30
 //
@@ -16,16 +16,16 @@
 
 px.import({
     imageRenderer   : '../image/imageRenderer.js',
-    image           : '../image/image.js'
+    image           : '../image/image.js',
+    timeModel       : './timeModel.js'
 }).then(function importsAreReady(imports) {
 
-    var image = imports.image
+    var image = imports.image,
+        timeModel = imports.timeModel()
      
     module.exports = function(scene) {
 
-        var DEFAULT_TIME_RANGE  = 2.75                                  // For each sector the time-line manages 2 hours and 45 minutes
-        var TIME_INTERVAL = 0.50                                        // each interval is half an hour
-        var DEFAULT_TIME_GROUPS = DEFAULT_TIME_RANGE / TIME_INTERVAL    // There are 5.5 30-minute sectors in the time line.
+        var DEFAULT_TIME_GROUPS = timeModel.timeRange / timeModel.timeInterval    // There are 5.5 30-minute sectors in the time line.
 
         var imageRenderer = imports.imageRenderer(scene)
 
@@ -50,79 +50,57 @@ px.import({
                 this.tileRenderFunction = func
                 return this
             },
+            // helper function that coverts a time model into cells for use in the time-line
+            _convertTimeModelToCells : function(model,sector,timeSectorWidth,timeSectorHeight) {
+
+                var timeCells = [], i = 0, timeOffset= 0
+                
+                if (model.preOffset > 0) {
+                    var w = Math.round(model.preOffset / timeModel.timeInterval * timeSectorWidth)
+                    timeOffset = w
+                    // if there is an offset - add a placeholder cell (helps tracking)
+                    timeCells.push(image({t:'rect',parent:sector,a:1,x:0,y:0,w:w,h:timeSectorHeight,
+                        data:{date:null}}))
+                }
+
+                // loop through all the time ranges and build the time groups
+                model.dates.forEach(function(dateOffset){
+
+                    // re-calculate the width if this is the last one in the sector
+                    var w = timeSectorWidth
+                    if (i == model.dates.length-1 && model.postOffset > 0)
+                        w = Math.round(model.postOffset / timeModel.timeInterval * timeSectorWidth)
+
+                    // time line
+                    timeCells.push(image({t:'rect',parent:sector,a:1,x:timeOffset,y:0,w:w,h:timeSectorHeight,
+                        data:{date:dateOffset.date}}))
+
+                    timeOffset += w
+                    i++
+                })
+
+                return timeCells
+            },
             // This private function adds a time sector relative to the given sector
+            // if relativeSector is null, this is assumed to be the first sector
             _addSector : function(relativeSector) {
 
-                // if null, this is a first sector and offset is zero, otherwise it needs to be off-setted
-
                 var t = this
-                var startDate = new Date()                                      // default time is NOW
-                if ( relativeSector != null) {
-                    // if there is a relative sector, the time line begins where the previous one ended
-                    // 15 minutes are added to take into account the prev sector ending post 15-minutes
-                    if (relativeSector.partialTime == 0)
-                        startDate = relativeSector.endDate
-                    else
-                        startDate = new Date(relativeSector.endDate.getTime()+( (TIME_INTERVAL - relativeSector.partialTime) * 60*60*1000))
 
-                } else {
-                    var min = startDate.getMinutes() < 30 ? 0 : 30              // initialize the time at top of the hour
-                    startDate.setMinutes(min)                                   // or half hour mark
-                    startDate.setSeconds(0)
-                    startDate.setMilliseconds(0)
-                }
+                var timeDataModel, sectorXOffset = 0
 
-                var dateOffset = startDate                                      // date counter
-
-                var sectorXOffset = 0
-                if (relativeSector != null && relativeSector.partialTime != 0) {
-                    // if adjoining another sector, the offset (width) is half the regular cell
-                    var offset = ((TIME_INTERVAL - relativeSector.partialTime) * this.timeSectorWidth / TIME_INTERVAL)
-                    sectorXOffset = relativeSector.container.x + this.width + offset
-                }
+                if (relativeSector != null) {
+                    sectorXOffset = relativeSector.container.x + this.width
+                    var nextStartOffset = timeModel.getNextStartDateOffset(relativeSector.model)
+                    timeDataModel = timeModel.getTimeModelForStartTime(nextStartOffset.startDate, nextStartOffset.offset)
+                } else
+                    timeDataModel = timeModel.getInitialTimeModel()
 
                 // create the container for the time line of this sector
                 var sector = scene.create({t:'rect',parent:this.timeContainer,x:sectorXOffset,y:0,a:1,
                     w:this.width,h:this.timeContainer.h})
 
-                var timeCells = []
-                var i = 0
-                var partialTime = 0
-                var timeOffset = 0
-
-                // loop through all the time ranges and build the time groups
-                while (i < DEFAULT_TIME_RANGE) {
-
-                    // if tile is the last one and there is an expected overlap (remainder modulus), we
-                    // recalculate the tile width, otherwise it default to the time sector width
-                    var tileWidth = this.timeSectorWidth
-                    if (i + TIME_INTERVAL > DEFAULT_TIME_RANGE) {
-                        var remainderTimeModulus = DEFAULT_TIME_RANGE % i
-                        if (remainderTimeModulus > 0 && remainderTimeModulus < TIME_INTERVAL) {
-                            tileWidth = Math.round(remainderTimeModulus * this.timeSectorWidth / TIME_INTERVAL)
-                            partialTime = remainderTimeModulus
-                        }
-                    }
-
-                    // time line
-                    timeCells.push(image({t:'rect',parent:sector,a:1,
-                        x:timeOffset,
-                        y:0,
-                        w:tileWidth,
-                        h:this.container.h,
-                        data:{date:dateOffset}}))
-
-                    // increment the date offset with the partial time if this is the last cell,
-                    // otherwise increment it with the TIME_INTERVAL
-                    if (partialTime == 0)
-                        dateOffset = new Date(dateOffset.getTime()+((TIME_INTERVAL * 60)*60*1000));   // add time interval to the previous time
-                    else
-                        dateOffset = new Date(dateOffset.getTime()+((partialTime * 60)*60*1000));
-
-                    timeOffset += tileWidth - this.borderWidth
-
-                    i += TIME_INTERVAL
-                }
+                var timeCells = t._convertTimeModelToCells(timeDataModel,sector,this.timeSectorWidth,this.container.h)
 
                 // render the time cells
                 imageRenderer.renderList(timeCells,function(timeTile){
@@ -140,9 +118,7 @@ px.import({
                     // do nothing post rendering
                 })
 
-                var endDate = new Date(dateOffset.getTime())
-
-                return {container:sector,endDate:endDate,startDate:startDate,partialTime:partialTime}
+                return {container:sector,model:timeDataModel}
             },
             // initial rendering of the selector
             render  : function() {

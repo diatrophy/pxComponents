@@ -64,6 +64,16 @@ module.exports = function() {
 
       this.effects['border'] = {bPadding:bPadding, lPadding:lPadding, rPadding:rPadding, tPadding:tPadding, borderColor:borderColor}
       return this
+    },
+    border2     : function(tPadding,bPadding,lPadding,rPadding,borderColor) {
+      if (bPadding == null && lPadding == null && rPadding == null) {
+        bPadding = lPadding = rPadding = tPadding
+      }
+      if (borderColor == null)
+        borderColor = 0xCCCCCCFF // 0xF8F8F8FF
+
+      this.effects['border2'] = {bPadding:bPadding, lPadding:lPadding, rPadding:rPadding, tPadding:tPadding, borderColor:borderColor}
+      return this
     }
   }
 }

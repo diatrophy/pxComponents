@@ -10,5 +10,9 @@ module.exports =  {
     border : {
         padding : 5,
         bottomMultiplier : 1,
+    },
+    border2 : {
+        padding : 5,
+        bottomMultiplier : 1,
     }
 }

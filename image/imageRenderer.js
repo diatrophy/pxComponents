@@ -6,6 +6,7 @@ px.import({
     polaroid:'effects/polaroid.js',
     reflection:'effects/reflection.js',
     border:'effects/border.js',
+    border2:'effects/border2.js',
 
 }).then(function importsAreReady(imports) {
 
@@ -16,10 +17,11 @@ px.import({
         polaroid    : imports.polaroid,
         reflection  : imports.reflection,
         border      : imports.border,
+        border2      : imports.border2,
     }
    
     var preEffects = ['dropShadow','polaroid','border']
-    var postEffects = ['topShadow','reflection']
+    var postEffects = ['topShadow','reflection','border2']
 
     module.exports = function(scene) { 
 
@@ -92,6 +94,7 @@ px.import({
                     imageConfig.h = uiImage.config.h
                     imageConfig.t = 'rect'
                     imageConfig.parent = container
+                    imageConfig.fillColor = uiImage.config.fillColor
                 }
 
                 var defaultImageConfig = {t:'image',url:defaultUrl,parent:container}

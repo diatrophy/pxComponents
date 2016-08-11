@@ -11,6 +11,8 @@ px.import({
     math            : '../math.js'
 }).then(function importsAreReady(imports) {
 
+    var transparentColor = 0xffffff00
+
     module.exports = function(scene) {
 
         var ret = {
@@ -18,7 +20,7 @@ px.import({
             currentSector:null,
             _createSector : function(newSectorXLoc,newSectorYLoc){
                 var id = "sector-" + Math.random()
-                return scene.create({id:id,t:'object',parent:this.container,a:1,w:this.container.w,
+                return scene.create({id:id,t:'object',parent:this.container,a:1,w:this.container.w,fillColor:transparentColor,
                     y:newSectorYLoc, x:newSectorXLoc, h:this.sectorHeight})
             },
             // Adds a new sector above the current sector

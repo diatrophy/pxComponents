@@ -17,6 +17,8 @@ px.import({
         cellRelate = imports.cellRelate(),
         gridHelper = imports.gridHelper()
 
+    var transparentColor = 0xffffff00
+
     var borderWidth = 1
 
     module.exports = function(scene) {
@@ -69,14 +71,17 @@ px.import({
                     return image({
                         t: 'rect',
                         parent: container,
-                        fillColor: 0x33C866,
+                        fillColor: transparentColor,
                         a: alpha,
                         x: xOffset,
                         y: yOffset,
                         w: wid,
                         h: tileH,
                         data: cellData // store the cell data in the image config
-                    }).addEffects(imageEffects().border(borderWidth, borderWidth, 1, 1, 0x555555FF))
+                    })
+                        .addEffects(imageEffects()
+                            .border2(borderWidth, borderWidth, 1, 1, 0x555555FF)
+                        )
                 }
 
                 // first convert the data to cells and then create relationships between cells

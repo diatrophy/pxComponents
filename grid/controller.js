@@ -384,6 +384,8 @@ px.import({
                     .init(tileH,container,scrollingListWidth)
                     .render(currentCell)
 
+                uiGridTime.update()
+
                 container.on("onKeyDown", function(e){
 
                     var currentCell = t.currentCell,

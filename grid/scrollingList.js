@@ -11,7 +11,8 @@ px.import({
 
     var image = imports.image,
         imageEffects = imports.imageEffects
-     
+    var transparentColor = 0xffffff00
+
     var animationSpeed = 0.50
 
     module.exports = function(scene) {
@@ -33,7 +34,7 @@ px.import({
                 // initialize a scrolling container to hold the scroll list
                 var dtl = scene.create({
                             t : "object",
-                            fillColor : 0x98C866,
+                            fillColor : transparentColor,
                             y : this.currentYLoc,    // position the scrolling list at the current cell
                             parent : container,
                             w : width,
@@ -58,12 +59,15 @@ px.import({
                 for (var i=0;i<channelList.length;i++) {
 
                     cells.push(image({t:'rect',parent:container,
-                        fillColor:0x2A2A2A,//0x98C866,
+                        fillColor:transparentColor,
                         a:1,x:this.xOffset,y:yOffset,
                         w:this.channelW,
                         h:this.tileHeight,
                         data:channelList[i]})
-                        .addEffects(imageEffects().border(borderWidth,borderWidth,0,1,0x555555FF)))
+                        .addEffects(
+                            imageEffects()
+                                .border2(borderWidth,borderWidth,0,1,0x555555FF)
+                        ))
                     yOffset += this.tileHeight
                 }
                 return cells
@@ -94,6 +98,7 @@ px.import({
                 var sector = scene.create({
                     a:1,
                     t : "rect",
+                    fillColor:transparentColor,
                     y : sectorY,    // position the scrolling list at the current cell
                     parent :  this.scrollingContainer,
                     w : this.scrollingContainer.w ,
@@ -103,6 +108,7 @@ px.import({
                 var f   = this.tileRenderFunction
 
                 var cells = this._generateCells(channelList,sector,borderWidth)
+
                 // Render the cells
                 imageRenderer.renderList(cells,function(channelTile){
                     f(channelTile)                          // invoke the rendering function

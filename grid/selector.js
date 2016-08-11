@@ -32,8 +32,8 @@ px.import({
 
                 var xOffset = xOffset == null ? 0 : xOffset
                 var xLoc    = this.xOffset
-                var width = gridHelper.calculateCellWidth(cell,xOffset)
-                
+                var width   = gridHelper.calculateCellWidth(cell,xOffset)
+
                 var yLoc    = cell.container.y // - this.height - this.borderWidth
                 var t       = this
 
@@ -80,11 +80,13 @@ px.import({
                 // check if the cell will be obscured by the scrolling list and if this is the first column in the grid
                 // use the default offset, otherwise set it to zero
                 var xOff = this.xOffset
-                if (cell.config.leftColumn == true && cell.config.prevCell != null) {
+                if ( cell.config.prevCell != null) {
                     xOff = 0
                 }
 
                 var width = gridHelper.calculateCellWidth(cell, xOff)
+                console.log(cell.container.x)
+                console.log(animateConfig)
 
                 // check if the cell will be obscured by the scrolling list and if this is the first column in the grid
                 if (cell.container.x < this.xOffset && (cell.config.leftColumn == true && cell.config.prevCell == null) ) {
@@ -92,8 +94,8 @@ px.import({
                 }
 
                 animateConfig.w = width
-
                 console.log(animateConfig)
+
                 this.top.image.animateTo({
                     w: animateConfig.w,
                 }, 0.50, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)

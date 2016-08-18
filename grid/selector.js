@@ -5,96 +5,74 @@
 // Jason Coelho
 
 px.import({
-    imageRenderer   : '../image/imageRenderer.js',
-    image           : '../image/image.js',
-    gridHelper      : 'gridHelper.js'
+    imageRenderer: '../image/imageRenderer.js',
+    image: '../image/image.js',
+    gridHelper: 'gridHelper.js'
 }).then(function importsAreReady(imports) {
 
     var image = imports.image
-        gridHelper = imports.gridHelper()
-     
-    module.exports = function(scene) {
+    gridHelper = imports.gridHelper()
+
+    module.exports = function (scene) {
 
         var imageRenderer = imports.imageRenderer(scene)
 
         return {
-            
-            init    : function(h,container,xOffset) {
-                this.borderWidth = 4
+
+            init: function (h, container) {
+                this.borderWidth = 5
                 this.height = h - this.borderWidth
                 this.container = container
-                this.xOffset = xOffset == null ? 0 : xOffset
-
                 return this
             },
             // initial rendering of the selector
-            render  : function(cell) {
+            render: function (cell) {
 
-                var xOffset = xOffset == null ? 0 : xOffset
-                var xLoc    = this.xOffset
-                var width   = gridHelper.calculateCellWidth(cell,xOffset)
+                var width = gridHelper.calculateCellWidth(cell, 0)
 
-                var yLoc    = cell.container.y // - this.height - this.borderWidth
-                var t       = this
+                var yLoc = cell.container.y
+                var t = this
 
-                var container = scene.create({t:'object',parent:this.container,x:xLoc,y:yLoc-2,w:width})
+                var container = scene.create({t: 'object', parent: this.container, x: 0, y: yLoc - 2, w: width})
 
                 // top line
-                imageRenderer.render(image({t:'rect',parent:container,fillColor:0xCCCCCCFF,a:1,
-                    y:1,
-                    w:width,h:this.borderWidth}),function(top){
+                imageRenderer.render(image({
+                    t: 'rect', parent: container, fillColor: 0xCCCCCCFF, a: 1,
+                    y: 1,
+                    w: width, h: this.borderWidth
+                }), function (top) {
                     t['top'] = top
                 })
-                            
+
                 // bottom line
-                imageRenderer.render(image({t:'rect',parent:container,fillColor:0xCCCCCCFF,a:1,
-                    y:this.height + 2,
-                    w:width,h:this.borderWidth}),function(bottom){
+                imageRenderer.render(image({
+                    t: 'rect', parent: container, fillColor: 0xCCCCCCFF, a: 1,
+                    y: this.height + 2,
+                    w: width, h: this.borderWidth
+                }), function (bottom) {
                     t['bottom'] = bottom
                 })
 
                 this['selector'] = container
             },
+            getXWithRespectToGridContainer: function (cell) {
+                return cell.container.parent.x + cell.container.x
+            },
+            getYWithRespectToGridContainer: function (cell) {
+                return cell.container.parent.y + cell.container.y
+            },
             // handles updating the location of the selector
-            update : function(cell,xLoc,yOffset) {
+            update: function (cell) {
 
                 if (cell == null)
                     return
 
-                // update the location of the selector
-                var yLoc = yOffset - (this.borderWidth / 2)      // take into account border
+                var animateConfig = {}
 
-                var animateConfig = {
-                    w: cell.container.w,
-                }
-                console.log(animateConfig)
+                animateConfig.y = this.getYWithRespectToGridContainer(cell) - (this.borderWidth / 4)
+                animateConfig.x = this.getXWithRespectToGridContainer(cell) - (this.borderWidth / 4)
 
-                if (yOffset != null) {
-                    animateConfig.y = yLoc
-                }
-
-                if (xLoc != null) {
-                    animateConfig.x = xLoc
-                }
-
-                // check if the cell will be obscured by the scrolling list and if this is the first column in the grid
-                // use the default offset, otherwise set it to zero
-                var xOff = this.xOffset
-                if ( cell.config.prevCell != null) {
-                    xOff = 0
-                }
-
-                var width = gridHelper.calculateCellWidth(cell, xOff)
-                console.log(cell.container.x)
-                console.log(animateConfig)
-
-                // check if the cell will be obscured by the scrolling list and if this is the first column in the grid
-                if (cell.container.x < this.xOffset && (cell.config.leftColumn == true && cell.config.prevCell == null) ) {
-                    width += this.xOffset
-                }
-
-                animateConfig.w = width
-                console.log(animateConfig)
+                animateConfig.w = cell.container.w
 
                 this.top.image.animateTo({
                     w: animateConfig.w,
@@ -109,7 +87,7 @@ px.import({
         }
     }
 
-}).catch( function(err){
+}).catch(function (err) {
     console.error("Error on Grid selector: ")
     console.log(err)
 });

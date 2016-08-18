@@ -3,13 +3,13 @@
 // Jason Coelho
 
 px.import({
-    imageRenderer   : '../image/imageRenderer.js',
-    image           : '../image/image.js',
-    imageEffects    : '../image/imageEffects.js',
-    math            : '../math.js',
-    sectors         : 'sectors.js',
-    cellRelate      : 'cellRelate.js',
-    gridHelper      : 'gridHelper.js'
+    imageRenderer: '../image/imageRenderer.js',
+    image: '../image/image.js',
+    imageEffects: '../image/imageEffects.js',
+    math: '../math.js',
+    sectors: 'sectors.js',
+    cellRelate: 'cellRelate.js',
+    gridHelper: 'gridHelper.js'
 }).then(function importsAreReady(imports) {
 
     var image = imports.image,
@@ -18,17 +18,18 @@ px.import({
         gridHelper = imports.gridHelper()
 
     var transparentColor = 0xffffff00
+    var greyColor = 0x999999ff
 
     var borderWidth = 1
 
-    module.exports = function(scene) {
+    module.exports = function (scene) {
 
         var imageRenderer = imports.imageRenderer(scene)
 
         return {
-            sectors : imports.sectors(scene),
-            init : function(listingDataInView,listingDataBottom,listingDataTop,listingDataRight,
-                            listingDataTopRight,listingDataBottomRight,container,tileHeight) {
+            sectors: imports.sectors(scene),
+            init: function (listingDataInView, listingDataBottom, listingDataTop, listingDataRight,
+                            listingDataTopRight, listingDataBottomRight, container, tileHeight) {
                 this.container = container
                 this.tileHeight = tileHeight
                 this.listingDataInView = listingDataInView
@@ -40,35 +41,36 @@ px.import({
                 return this
             },
             // handler for the individual cell
-            tileRenderFunction : function(func){
+            tileRenderFunction: function (func) {
                 this.tileRender = func
                 return this
             },
-            tileSelectedFunction : function(func) {
+            tileSelectedFunction: function (func) {
                 this.tileSelected = func
                 return this
             },
-            render : function(callback){
+            render: function (callback) {
 
                 var c = this.container
 
-                var sectorCurrent = this.sectors.init(c,borderWidth,this.tileHeight*5)
+                var sectorCurrent = this.sectors.init(c, borderWidth, this.tileHeight * 5)
 
-                var cells = this._addCellsToSector(this.listingDataInView,sectorCurrent,0)
+                var cells = this._addCellsToSector(this.listingDataInView, sectorCurrent, 0)
 
-                this.addTopSector(this.listingDataTop,sectorCurrent)
-                this.addBottomSector(this.listingDataBottom,sectorCurrent)
-                this.addRightSector(this.listingDataRight,sectorCurrent)
-                this.addTopRightSector(this.listingDataTopRight,sectorCurrent)
-                this.addBottomRightSector(this.listingDataBottomRight,sectorCurrent)
+                this.addTopSector(this.listingDataTop, sectorCurrent)
+                this.addBottomSector(this.listingDataBottom, sectorCurrent)
+                this.addRightSector(this.listingDataRight, sectorCurrent)
+                this.addTopRightSector(this.listingDataTopRight, sectorCurrent)
+                this.addBottomRightSector(this.listingDataBottomRight, sectorCurrent)
 
                 callback(cells[0])
             },
             // internal function that creates cells and adds them to a sector
-            _addCellsToSector : function(data,sector,selectedIndex){
+            _addCellsToSector: function (data, sector, selectedIndex) {
 
-                var cellFunction = function(container,alpha,xOffset,yOffset,wid,tileH,cellData){
-                    return image({
+                // helper function to create each cell
+                var cellFunction = function (container, alpha, xOffset, yOffset, wid, tileH, cellData) {
+                    var cell = image({
                         t: 'rect',
                         parent: container,
                         fillColor: transparentColor,
@@ -77,21 +79,29 @@ px.import({
                         y: yOffset,
                         w: wid,
                         h: tileH,
+                        clip:true,
                         data: cellData // store the cell data in the image config
                     })
                         .addEffects(imageEffects()
-                            .border2(borderWidth, borderWidth, 1, 1, 0x555555FF)
+                            .border2(0, borderWidth, 0, borderWidth, greyColor)
                         )
+
+                    // create a circular reference so that we can use it later
+                    cellData.cell = cell
+
+                    return cell
                 }
 
                 // first convert the data to cells and then create relationships between cells
                 // also mark the cell matching the selectedIndex as `initial`
-                var cells = gridHelper.convertListingDataInViewToCells(data,sector.container,this.container.w,this.tileHeight,cellFunction)
+                var cells = gridHelper.convertListingDataInViewToCells(data, sector.container, this.container.w, this.tileHeight, cellFunction)
 
-                if (selectedIndex != null)
-                    cells[selectedIndex].initialCell = true
+                if (selectedIndex != null) {
+                    cells[selectedIndex].initialCell = true     // mark the selected cell as the initial cell
+                }
 
-                cellRelate.proximitySearch(cells,data)
+                // relate each cell within a sector to each other
+                cellRelate.proximitySearch(cells, data)
 
                 sector.cells = cells
                 sector.data = data
@@ -99,65 +109,95 @@ px.import({
                 var tileRender = this.tileRender                // pre-declare the function so that it is reachable in the function
                 var tileSelected = this.tileSelected
                 // Render the cells
-                imageRenderer.renderList(cells,function(cell){
+                imageRenderer.renderList(cells, function (cell) {
+
+                    // updates the offset of the content within the cell : if the cell will be obscured
+                    var titleXOffset = 0
+                    if (cell.container.x < 0)
+                        titleXOffset = Math.abs(cell.container.x)
+
                     if (cell.placeholder != true) {
-                        tileRender(cell, function (c) {         // invoke the rendering function
+                        tileRender(cell, titleXOffset, function (c) {         // invoke the rendering function
                             c.loaded = true                     // mark the cell's contents as rendered
                             if (c.initialCell)
                                 tileSelected(c)                 // if this is the initial cell, it is selected
                         })
                     }
-                },function(cells){
+                }, function (cells) {
                     // nothing to do post tile rendering
                 })
 
                 return cells
             },
             // Adds a sector above the current sector and populates it with cells containing the listing data
-            addTopSector : function(data,relativeSector) {
+            addTopSector: function (data, relativeSector) {
 
                 var sector = this.sectors.extendUp(relativeSector)
-                var cells = this._addCellsToSector(data,sector)
-                cellRelate.bottomStitchSectors(cells,data,relativeSector.cells,relativeSector.data)
+                var cells = this._addCellsToSector(data, sector)
+                cellRelate.bottomStitchSectors(cells, data, relativeSector.cells, relativeSector.data)
                 return sector
             },
-            addTopRightSector : function(data,relativeSector) {
+            addTopRightSector: function (data, relativeSector) {
 
-                var t = relativeSector.top
-                var r = relativeSector.right
-                var sector = this.sectors.extendRight(t)
+                var t = relativeSector.top,
+                    r = relativeSector.right,
+                    sector = this.sectors.extendRight(t)
 
-                var cells = this._addCellsToSector(data,sector)
-                cellRelate.bottomStitchSectors(cells,data,r.cells,r.data)
-                cellRelate.sideStitchSectors(t.cells,cells)
+                // relate the new sector with the sector to the right of this
+                sector.bottom = r
+                r.top = sector
+
+                var cells = this._addCellsToSector(data, sector)
+                cellRelate.bottomStitchSectors(cells, data, r.cells, r.data)
+                cellRelate.sideStitchSectors(t.cells, cells)
             },
-            addBottomRightSector : function(data,relativeSector) {
+            addTopLeftSector: function (data, relativeSector) {
 
-                var r = relativeSector.right
-                var b = relativeSector.bottom
+                var t = relativeSector.top,
+                    l = relativeSector.left,
+                    sector = this.sectors.extendLeft(t)
 
-                var sector = this.sectors.extendRight(b)
-                var cells = this._addCellsToSector(data,sector)
-                cellRelate.bottomStitchSectors(r.cells,r.data,cells,data)
-                cellRelate.sideStitchSectors(b.cells,cells)
+                // relate the new sector with the sector to the right of this
+                sector.bottom = l
+                l.top = sector
+
+                var cells = this._addCellsToSector(data, sector)
+                // console.log(data)
+                // cellRelate.bottomStitchSectors(cells, data, r.cells, r.data)
+                // cellRelate.sideStitchSectors(cells,t.cells)
+            },
+            addBottomRightSector: function (data, relativeSector) {
+
+                var r = relativeSector.right,
+                    b = relativeSector.bottom,
+                    sector = this.sectors.extendRight(b)
+
+                // relate the new sector with the sector to the right of this
+                sector.top = r
+                r.bottom = sector
+
+                var cells = this._addCellsToSector(data, sector)
+
+                cellRelate.bottomStitchSectors(r.cells, r.data, cells, data)
+                cellRelate.sideStitchSectors(b.cells, cells)
             },
             // Adds a sector below the current sector and populates it with cells containing the listing data
-            addBottomSector : function(data,relativeSector) {
+            addBottomSector: function (data, relativeSector) {
 
                 var sector = this.sectors.extendDown(relativeSector)
-                var cells = this._addCellsToSector(data,sector)
-                cellRelate.bottomStitchSectors(relativeSector.cells,relativeSector.data,cells,data)
+                var cells = this._addCellsToSector(data, sector)
+                cellRelate.bottomStitchSectors(relativeSector.cells, relativeSector.data, cells, data)
             },
             // Adds a sector to the right of the current sector and populates it with cells containing the listing data
-            addRightSector : function(data,relativeSector) {
+            addRightSector: function (data, relativeSector) {
                 var sector = this.sectors.extendRight(relativeSector)
-                var cells = this._addCellsToSector(data,sector)
-                cellRelate.sideStitchSectors(relativeSector.cells,cells)
-
+                var cells = this._addCellsToSector(data, sector)
+                cellRelate.sideStitchSectors(relativeSector.cells, cells)
+                return sector
             }
         }
     }
-}).catch( function(err){
+}).catch(function (err) {
     console.error("Error on Grid : ")
     console.log(err)
 });

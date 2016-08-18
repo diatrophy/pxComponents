@@ -25,7 +25,7 @@ px.import({
             },
             // Adds a new sector above the current sector
             extendUp : function(relativeSector) {
-                var newSectorYLoc = relativeSector.container.y - this.sectorHeight - this.borderWidth
+                var newSectorYLoc = relativeSector.container.y - this.sectorHeight //- this.borderWidth
                 var newSectorXLoc = relativeSector.container.x
                 var sector = this._createSector(newSectorXLoc,newSectorYLoc)
                 relativeSector.top = {container:sector,bottom:relativeSector}
@@ -47,13 +47,21 @@ px.import({
                 relativeSector.right = {container:sector,left:relativeSector}
                 return relativeSector.right
             },
+            // Adds a new sector to the left of the current sector
+            extendLeft : function(relativeSector) {
+                var newSectorYLoc = relativeSector.container.y
+                var newSectorXLoc = relativeSector.container.x - this.container.w
+                var sector = this._createSector(newSectorXLoc,newSectorYLoc)
+                relativeSector.left = {container:sector,right:relativeSector}
+                return relativeSector.left
+            },
             // initialize the sectors object
             init : function(parent,borderWidth,sectorHeight) {
 
                 this.container = parent
                 this.borderWidth = borderWidth
                 this.sectorHeight = sectorHeight
-                this.currentSector = {container:this._createSector(0,0)}
+                this.currentSector = {container:this._createSector(0,-1)}
 
                 return this.currentSector
             }

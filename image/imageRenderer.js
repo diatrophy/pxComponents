@@ -95,6 +95,8 @@ px.import({
                     imageConfig.t = 'rect'
                     imageConfig.parent = container
                     imageConfig.fillColor = uiImage.config.fillColor
+                    imageConfig.lineColor = uiImage.config.lineColor
+                    imageConfig.lineWidth = uiImage.config.lineWidth
                 }
 
                 var defaultImageConfig = {t:'image',url:defaultUrl,parent:container}

@@ -2,18 +2,21 @@ module.exports = function () {
 
     var borderWidth = 1
 
-    // since the data contains the pre-calculated percentage (complexity else-where) we can easily determine the width
-    var calculateCellWidth = function (percentage, width) {
+    var calculateCellWidthWithMin = function (min, minWidth) {
 
         var wid
-        if (percentage != null)
-            wid = (width * percentage) / 100
+        if (min != null)
+            wid = min * minWidth
         return wid
     }
 
     return {
-        DEFAULT_BUCKET_SIZE : 2,
-        convertRowOfListingsToCells: function (row, tileH, container, sectorWidth, yOffset, cellFunction) {
+        DEFAULT_BUCKET_SIZE: 2,
+        // yOffset - position of the row (along the y axis)
+        // minWidth - width of each minute
+        // cellFunction - function that creates the cell, function param allows easy testability as tests can
+        // supply own function that can collect data - to be asserted later
+        convertRowOfListingsToCells: function (row, tileH, container, sectorWidth, yOffset, cellFunction, minWidth) {
 
             var xOffset = 0,
                 cells = []
@@ -21,9 +24,10 @@ module.exports = function () {
             // loop through all the cells in the row
             row.forEach(function (cellData) {
 
-                var wid = calculateCellWidth(cellData.p, sectorWidth)
-                if (cellData.o != null) {
-                    xOffset = cellData.o / 100 * container.w
+                var wid = calculateCellWidthWithMin(cellData.min, minWidth)
+
+                if (cellData.oMin != null && cellData.oMin != 0) {
+                    xOffset = cellData.oMin * minWidth
                 }
 
                 var alpha = 1
@@ -47,6 +51,8 @@ module.exports = function () {
                 yOffset = borderWidth,      // starting offset along the y-axis
                 t = this
 
+            var minWidth =container.w / ((2 * 60) + 45)
+
             // use 2 nested loops to go through the matrix of listings and generate cells
             listingDataInView.forEach(function (row) {
 
@@ -56,10 +62,10 @@ module.exports = function () {
                     row.push({p: 100, placeholder: true})
                 }
 
-                var rowCells = t.convertRowOfListingsToCells(row, tileHeight, container, width, yOffset, cellFunction)
+                var rowCells = t.convertRowOfListingsToCells(row, tileHeight, container, width, yOffset, cellFunction, minWidth)
                 cells = cells.concat(rowCells)
 
-                yOffset += tileH // + borderWidth  // onto the next row
+                yOffset += tileH   // onto the next row
             })
 
             return cells
@@ -79,7 +85,7 @@ module.exports = function () {
         },
         // method to determine how many buckets are in a percentage range
         // Example - if the bucket size is 5, 5% = 1 bucket
-        calculateNumberOfCellBuckets: function (percentage,offset) {
+        calculateNumberOfCellBuckets: function (percentage, offset) {
 
             var buckets = 1        // default to 1 bucket
 

@@ -1,4 +1,4 @@
-// grid.js
+// infoPanel.js
 //
 // Jason Coelho
 
@@ -16,7 +16,7 @@ px.import({
         var imageRenderer = imports.imageRenderer(scene)
 
         return {
-            init: function (container,xOffset) {
+            init: function (container, xOffset) {
                 this.container = container
                 this.xOffset = xOffset
                 return this
@@ -25,7 +25,7 @@ px.import({
                 this.timeRenderFunc = func
                 return this
             },
-            registerDetailsFunction: function(func){
+            registerDetailsFunction: function (func) {
                 this.detailsFunc = func
                 return this
             },
@@ -36,18 +36,20 @@ px.import({
 
                 imageUrl = imageUrl == null ? "" : imageUrl
 
-                // horizontal line
+                // horizontal line (top)
                 scene.create({
                     t: 'rect',
                     parent: this.container,
                     x: this.xOffset,
-                    y: 1,
+                    y: 0,
                     w: scene.w,
                     h: 1,
                     fillColor: greyColor
                 })
 
                 var t = this
+
+                // program image
                 imageRenderer.render(
                     image({
                         url: imageUrl,
@@ -61,9 +63,10 @@ px.import({
                         t.infoImage = bgImage
                     })
 
+                // container that holds the time and channel
                 this.infoTimeContainer = scene.create({
                     t: 'rect',
-                    x: this.container.w - Math.round(this.container.w/3),
+                    x: this.container.w - Math.round(this.container.w / 3),
                     y: 30,
                     a: 1,
                     w: 450,
@@ -72,6 +75,7 @@ px.import({
                     parent: this.container
                 })
 
+                // container that holder the title and description
                 this.detailsContainer = scene.create({
                     t: 'rect',
                     x: 250,
@@ -83,18 +87,23 @@ px.import({
                     parent: this.container
                 })
 
-                this.infoTimeContainer.ready.then(function(img){
+                // invoke the user supplied function when the container is ready
+                this.infoTimeContainer.ready.then(function (img) {
                     t.timeRenderFunc(img)
                 })
 
-                this.detailsContainer.ready.then(function(img){
+                // invoke the user supplied details function when the container is ready
+                this.detailsContainer.ready.then(function (img) {
                     t.detailsFunc(img)
                 })
 
                 return this
             },
-            update: function (url,startTime,endTime) {
-                this.infoImage.image.url = url
+            update: function (url, startTime, endTime) {
+                // check if info image is ready
+                if (this.infoImage != null) {
+                    this.infoImage.image.url = url
+                }
             }
         }
     }

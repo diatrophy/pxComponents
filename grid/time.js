@@ -80,7 +80,7 @@ px.import({
                 var t = this
 
                 if (model.preOffset > 0) {
-                    var w = model.preOffset * 60 * t.minWidth  // Math.round(model.preOffset / timeModel.timeInterval * timeSectorWidth)
+                    var w = model.preOffset * 60 * t.minWidth
                     timeOffset = w
                     // if there is an offset - add a placeholder cell (helps tracking)
                     timeCells.push(image({
@@ -103,7 +103,6 @@ px.import({
                     var w = timeSectorWidth
                     if (i == model.dates.length - 1 && model.postOffset > 0)
                         w = model.postOffset * 60 * t.minWidth
-                    // Math.round(model.postOffset / timeModel.timeInterval * timeSectorWidth)
 
                     // time line
                     timeCells.push(image({

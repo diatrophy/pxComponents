@@ -234,21 +234,111 @@ px.import({
                         callback(targetCell, pageScroll, null, 0, yOffset, uiScrollingListYOffset)
 
                     }
-                } else if (e.keyCode == 33
-                ) {                   // PAGE UP
-                    targetCell = null
-                    this.currentRow += 5
+                } else if (e.keyCode == 33) {                   // PAGE UP
+                    var i = 0
+                    while (i < 5) {
+
+                        if (targetCell == null) {
+                            targetCell = currentCell.config.topCell
+                            prevCell = currentCell
+                        } else {
+                            prevCell = targetCell
+                            targetCell = targetCell.config.topCell
+                        }
+
+                        if (targetCell == null) {
+                            targetCell = prevCell
+                            break
+                        }
+
+                        i++
+                        this.currentRow--
+                        this.currentSectorRow--
+                        if (this.currentViewRow > 0)
+                            this.currentViewRow--
+                    }
+
+                    // because we only adjust the left right scroll in half hour increments, it is possible that the
+                    // target cell may be obscured - in which case we need to pick the target cell next to it
+                    // or recurse until we find one that isn't obscured
+                    var found = false
+                    while (found == false) {
+                        var x = this.getCellViewPortX(targetCell)
+                        var x2 = x + targetCell.container.w
+                        if (x2 < 0.5 && x2 > 0) x2 = 0
+                        if (x2 <= 0)
+                            targetCell = targetCell.config.nextCell
+                        else
+                            found = true
+                    }
+
+                    if (i == 5) {
+                        pageScroll = 'up'
+                        uiScrollingListYOffset = 5 * (this.tileH)
+                        yOffset = 5 * (this.tileH)
+                    }
+
+                    logger.log(targetCell.title.text)
+                    // if the cell below is wider than the container, do not attempt diagonal move
+                    callback(targetCell, pageScroll, null, 0, yOffset, uiScrollingListYOffset, 'top')
+
                 }
-                else if (e.keyCode == 44) {                   // PAGE DOWN
-                    targetCell = null
-                    this.currentRow -= 5
+                else if (e.keyCode == 34) {                   // PAGE DOWN
+
+                    var i = 0
+                    while (i < 5) {
+
+                        if (targetCell == null) {
+                            targetCell = currentCell.config.bottomCell
+                            prevCell = currentCell
+                        } else {
+                            prevCell = targetCell
+                            targetCell = targetCell.config.bottomCell
+                        }
+
+                        if (targetCell == null) {
+                            targetCell = prevCell
+                            break
+                        }
+
+                        i++
+                        this.currentRow++
+                        this.currentSectorRow++
+                        if (this.currentViewRow < 4)
+                            this.currentViewRow++
+                    }
+
+                    // because we only adjust the left right scroll in half hour increments, it is possible that the
+                    // target cell may be obscured - in which case we need to pick the target cell next to it
+                    // or recurse until we find one that isn't obscured
+                    var found = false
+                    while (found == false) {
+                        var x = this.getCellViewPortX(targetCell)
+                        var x2 = x + targetCell.container.w
+                        if (x2 < 0.5 && x2 > 0) x2 = 0
+                        if (x2 <= 0)
+                            targetCell = targetCell.config.nextCell
+                        else
+                            found = true
+                    }
+
+                    if (i == 5) {
+                        pageScroll = 'up'
+                        uiScrollingListYOffset = -5 * (this.tileH)
+                        yOffset = -5 * (this.tileH)
+                    }
+
+                    logger.log(targetCell.title.text)
+                    // if the cell below is wider than the container, do not attempt diagonal move
+                    callback(targetCell, pageScroll, null, 0, yOffset, uiScrollingListYOffset, 'bottom')
+
                 }
             },
             // determines if the sector has changed, and if it has invokes the sectorChanged callback
             // additionally if the data in the next sector (of motion ex. top of next if movement is up arrow)
             // is empty then the second callback is invoked - that triggers fetching off and loading data
             sectorChange: function (currentSector, currentScrollingSector, currentTimeSector,
-                                    prevCell, targetCell, sectorChangeCallback, loadDataCallback) {
+                                    prevCell, targetCell, overrideDirection, sectorChangeCallback, loadDataCallback) {
 
                 var nextSector, nextScrollingSector, nextTimeSector, loadNeighborDirection,
                     previous = prevCell.config,
@@ -256,16 +346,22 @@ px.import({
                     previousContainerId = prevCell.container.parent.id,
                     targetContainerId = targetCell.container.parent.id
 
+                logger.log('-------- prev ontiner ' + previousContainerId + ":" + targetContainerId)
+
                 if (previousContainerId != targetContainerId) {
 
-                    if (previous.bottomRow && target.topRow) {            // we've crossed into the sector below
+                    if (previous.bottomRow && target.topRow || overrideDirection == 'bottom') {
+
+                        // we've crossed into the sector below
 
                         nextSector = currentSector.bottom
                         nextScrollingSector = currentScrollingSector.bottom
                         if (nextSector.bottom == null)
                             loadNeighborDirection = 'bottom'
 
-                    } else if (previous.topRow && target.bottomRow) {     // we've crossed into the sector above
+                    } else if (previous.topRow && target.bottomRow || overrideDirection == 'top') {
+
+                        // we've crossed into the sector above
 
                         nextSector = currentSector.top
                         nextScrollingSector = currentScrollingSector.top
@@ -298,7 +394,8 @@ px.import({
             ,
             // this function handles the actions to undertake if the sector has changed
             determineSectorChangeAndLoadNeighboringData: function (cSector, currentScrollingSector, currentTimeSector,
-                                                                   prevCell, targetCell, pageScroll, horizontalScroll, uiGrid, uiScrollingList, uiGridTime) {
+                                                                   prevCell, targetCell, pageScroll, horizontalScroll,
+                                                                   uiGrid, uiScrollingList, uiGridTime, overrideDirection) {
                 var t = this
 
                 // callback function indicating that the sector has changed and this warrants
@@ -351,9 +448,11 @@ px.import({
 
                 this.sectorChange(cSector, currentScrollingSector, currentTimeSector,
                     prevCell, targetCell,
+                    overrideDirection,
                     sectorChangeActionCallback,
                     loadActionCallback)
             }
+
             ,
             handleTimeBarAnimate: function (timeAnimateConfig) {
 
@@ -453,7 +552,8 @@ px.import({
                     logger.log('currentSector')
                     adjustTitles(uiGrid.sectors.currentSector)
                 }
-            },
+            }
+            ,
             // registers various components with this controller, and also establishes what to do when keys are pressed
             register: function (container, containerGrid, uiGridSelector, uiScrollingList, uiGrid, uiGridTime, currentCell, scrollingListWidth,
                                 tileH, borderWidth, currentRow) {        // initialize the container with the key pressed hooks
@@ -490,7 +590,7 @@ px.import({
                         currentTimeSector = uiGridTime.currentSector
 
                     t.keyCodeAction(e, currentCell, uiGridTime.timeSectorWidth,
-                        function (targetCell, pageScroll, horizontalScroll, xOffset, yOffset, uiScrollingListYOffset) {
+                        function (targetCell, pageScroll, horizontalScroll, xOffset, yOffset, uiScrollingListYOffset, overrideDirection) {
 
                             if (targetCell.loaded != true)
                                 return                                                  // short circuit if contents of cell not loaded
@@ -502,7 +602,7 @@ px.import({
                             uiGrid.tileSelected(targetCell, prevCell)                    // highlights the next cell
 
                             t.determineSectorChangeAndLoadNeighboringData(currentSector, currentScrollingSector, currentTimeSector,
-                                prevCell, targetCell, pageScroll, horizontalScroll, uiGrid, uiScrollingList, uiGridTime)
+                                prevCell, targetCell, pageScroll, horizontalScroll, uiGrid, uiScrollingList, uiGridTime, overrideDirection)
 
                             if (yOffset != null || yOffset != 0 || xOffset != null || xOffset != 0) {
 

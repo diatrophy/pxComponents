@@ -16,9 +16,12 @@ px.import({
         var imageRenderer = imports.imageRenderer(scene)
 
         return {
-            init: function (container, xOffset) {
+            init: function (container, xOffset, scrollingListWidth,imgW,imgH) {
                 this.container = container
                 this.xOffset = xOffset
+                this.scrollingListWidth = scrollingListWidth
+                this.imgW = imgW
+                this.imgH = imgH
                 return this
             },
             registerTimeRenderFunction: function (func) {
@@ -47,17 +50,32 @@ px.import({
                     fillColor: greyColor
                 })
 
-                var t = this
+                var t = this,
+                    yOffset = this.container.h * 0.09,
+                    imageYOffset = this.container.h * 0.07,
+                    timeYOffset = this.container.h * 0.25
+
+                // vertical line in info container
+                var infoOffsetLeftX = this.container.w - Math.round(this.container.w / 3)
+                scene.create({
+                    t: 'rect',
+                    parent: this.container,
+                    x: infoOffsetLeftX,
+                    y: timeYOffset,
+                    w: 1,
+                    h: this.container.h * 0.35,
+                    fillColor: greyColor
+                })
 
                 // program image
                 imageRenderer.render(
                     image({
                         url: imageUrl,
                         parent: this.container,
-                        w: 180,
-                        h: 240,
-                        x: 50,
-                        y: 30
+                        w: t.imgW,
+                        h: t.imgH,
+                        x: this.xOffset,
+                        y: imageYOffset
                     })
                     , function (bgImage) {
                         t.infoImage = bgImage
@@ -67,7 +85,7 @@ px.import({
                 this.infoTimeContainer = scene.create({
                     t: 'rect',
                     x: this.container.w - Math.round(this.container.w / 3),
-                    y: 30,
+                    y: timeYOffset,
                     a: 1,
                     w: 450,
                     h: 240,
@@ -78,8 +96,8 @@ px.import({
                 // container that holder the title and description
                 this.detailsContainer = scene.create({
                     t: 'rect',
-                    x: 250,
-                    y: 30,
+                    x: this.scrollingListWidth,
+                    y: yOffset,
                     a: 1,
                     w: 750,
                     h: 240,

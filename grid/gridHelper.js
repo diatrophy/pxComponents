@@ -6,7 +6,7 @@ module.exports = function () {
 
         var wid
         if (min != null)
-            wid = min * minWidth
+            wid = min * minWidth // - 2*minWidth
         return wid
     }
 
@@ -43,6 +43,9 @@ module.exports = function () {
 
             return cells
         },
+        getMinuteWidth: function(container){
+            return Math.round(container.w / ((2 * 60) + 45))
+        },
         // takes an matrix of listings (an array for each channel) and converts this to a single array of cells
         convertListingDataInViewToCells: function (listingDataInView, container, width, tileHeight, cellFunction) {
 
@@ -51,7 +54,7 @@ module.exports = function () {
                 yOffset = borderWidth,      // starting offset along the y-axis
                 t = this
 
-            var minWidth =container.w / ((2 * 60) + 45)
+            var minWidth = this.getMinuteWidth(container)
 
             // use 2 nested loops to go through the matrix of listings and generate cells
             listingDataInView.forEach(function (row) {

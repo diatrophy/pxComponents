@@ -29,7 +29,7 @@ px.import({
                 //
                 // TOP / BOTTOM CELL
                 //
-                // Each row in the grid is divided into 24 numbered buckets. Each bucket is DEFAULT_BUCKET_SIZE % width of the row.
+                // Each row in the grid is divided into numbered buckets. Each bucket is DEFAULT_BUCKET_SIZE % width of the row.
                 // Each Cell in the row
                 // is then assigned to a bucket ( a cell can live in multiple buckets). With this information, a cell can now be
                 // correlated to the corresponding buckets in the row above and below it (based on the first bucket it belongs to).

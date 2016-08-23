@@ -17,11 +17,13 @@
 px.import({
     imageRenderer: '../image/imageRenderer.js',
     image: '../image/image.js',
-    timeModel: './timeModel.js'
+    timeModel: './timeModel.js',
+    logger: '../logger.js'
 }).then(function importsAreReady(imports) {
 
     var image = imports.image,
-        timeModel = imports.timeModel()
+        timeModel = imports.timeModel(),
+        logger = imports.logger()
 
     var greyColor = 0x999999ff
     var blue = 0x1E90FFff
@@ -53,10 +55,14 @@ px.import({
                 this.xOffset = xOffset == null ? 0 : xOffset            // use over-ride if specified
                 this.xOffset2 = xOffset2
                 this.markerUrl = markerUrl
-                this.width = this.container.w  - xOffset
+
+                var w = this.container.w - xOffset,
+                    min = ((2 * 60) + 45)
 
                 // determine each time group width based on the container width and offset
-                this.minWidth = (this.width) / ((2 * 60) + 45)
+                this.minWidth = Math.round( w / min )
+                this.width = min * this.minWidth
+
                 this.timeSectorWidth = 30 * this.minWidth
 
                 return this
@@ -159,8 +165,10 @@ px.import({
 
                 var timeCells = t._convertTimeModelToCells(timeDataModel, sector, this.timeSectorWidth, this.container.h)
 
-                if (relativeSector == null)
+                if (relativeSector == null) {
                     timeCells[0].config.data.first = true
+                    t.currentCell = timeCells[0]                
+                }
 
                 // render the time cells
                 imageRenderer.renderList(timeCells, function (timeTile) {
@@ -176,6 +184,11 @@ px.import({
                     timeText += t.friendlyDate(startDate)
 
                     t.tileRenderFunction(timeTile, timeText)
+
+                    if (timeTile.config.data.first == true) {
+                        t.tileSelectedFunction(timeTile,null)
+                        t.currentCell = timeTile
+                    }
 
                 }, function () {
                     // do nothing post rendering
@@ -271,17 +284,44 @@ px.import({
                 }
             },
             // handles updating the location of the selector
-            update: function (date) {
+            update: function (targetDate) {
+
                 var cells = this.currentSector.cells
-                cells.forEach(function (cell) {
-                    // console.log(cell.config.data.date)
-                    // console.log(cell)
-                    // TODO  - highlight the currently selected time in the time sector
-                })
+                var candidate
+                for (var i = 0; i < cells.length; i++) {
+                    var cell = cells[i]
+                    var cellDate = cell.config.data.date 
+
+                    if (cellDate != null) {                                 // in case this is a placeholder cell
+                        if (targetDate < cellDate.getTime() && i == 0) {    // if this is the first cell of this sector
+                            candidate = cell
+                            break
+                        } else {
+                            if (targetDate >= cellDate.getTime())
+                                candidate = cell
+                            else if (targetDate < cellDate.getTime()) {
+                                break
+                            }
+                        }
+                    }   
+                }
+                if (candidate != null) {
+                    var prevDate = null
+                    if (this.currentCell != null) {
+                        this.prevCell = this.currentCell
+                        prevDate = this.prevCell.config.data.date
+                    }
+                    this.currentCell = candidate
+                    var currentDate = this.currentCell.config.data.date
+
+                    if (prevDate != currentDate)
+                        this.tileSelectedFunction(this.currentCell,this.prevCell)
+                }
+
             }
         }
     }
 }).catch(function (err) {
     console.error("Error on Time selector: ")
-    console.log(err)
+    console.log(err.stack)
 });

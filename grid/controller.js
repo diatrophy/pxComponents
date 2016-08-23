@@ -59,13 +59,13 @@ px.import({
             rightScrollOffset: function (targetCell, timeWidth, containerWidth, callback) {
 
                 var pageScroll,
-                    xOffset = 0,
-                    targetContainerWidth = targetCell.container.w
+                    xOffset = 0
 
                 if (targetCell != null) {
 
                     // get the position of the target cell
-                    var x = this.getCellViewPortX(targetCell)
+                    var targetContainerWidth = targetCell.container.w,
+                        x = this.getCellViewPortX(targetCell)
 
                     var defer = false
 
@@ -329,9 +329,8 @@ px.import({
                     }
 
                     logger.log(targetCell.title.text)
-                    // if the cell below is wider than the container, do not attempt diagonal move
-                    callback(targetCell, pageScroll, null, 0, yOffset, uiScrollingListYOffset, 'bottom')
 
+                    callback(targetCell, pageScroll, null, 0, yOffset, uiScrollingListYOffset, 'bottom')
                 }
             },
             // determines if the sector has changed, and if it has invokes the sectorChanged callback
@@ -423,6 +422,7 @@ px.import({
                     // LOGIC to load data if we have crossed into a different sector
                     // only need to load data if the callback determines it is needed
 
+                    var nextSector = nextSector
                     t.loadNeighbor(t.currentRow, t.currentSectorRow, loadNeighborDirection, function (data) {
 
                         if (loadNeighborDirection == "top") {
@@ -580,8 +580,6 @@ px.import({
                     .init(tileH, containerGrid)
                     .render(currentCell)
 
-                uiGridTime.update()
-
                 container.on("onKeyDown", function (e) {
 
                     var currentCell = t.currentCell,
@@ -631,12 +629,14 @@ px.import({
                                 t.handleTitleReadjustment(uiGrid, containerGridXPosition, xOffset)
                                 t.handleGridAnimate(gridAnimateConfig)
                                 t.handleTimeBarAnimate(timeAnimateConfig)
+                                uiGridTime.update(targetCell.config.data.s)
 
                             } else {
                                 var y = t.getCellViewPortY(targetCell)
                                 // TODO - add logic here to pan the guide left / right / up / down
                                 // move the selector
                                 uiGridSelector.update(targetCell, t.getCellViewPortY(targetCell))
+                                uiGridTime.update(targetCell.config.data.s)
                             }
                         })
                 })

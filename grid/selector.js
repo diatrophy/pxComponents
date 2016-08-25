@@ -70,7 +70,7 @@ px.import({
                 var animateConfig = {}
 
                 animateConfig.y = this.getYWithRespectToGridContainer(cell) - (this.borderWidth / 4)
-                animateConfig.x = this.getXWithRespectToGridContainer(cell) - (this.borderWidth / 4)
+                animateConfig.x = this.getXWithRespectToGridContainer(cell)
 
                 animateConfig.w = cell.container.w
 
@@ -80,6 +80,7 @@ px.import({
 
                 this.bottom.image.animateTo({
                     w: animateConfig.w,
+                    y: cell.container.h - this.borderWidth / 2 ,
                 }, 0.50, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
 
                 this.selector.animateTo(animateConfig, 0.50, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)

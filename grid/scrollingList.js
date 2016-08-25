@@ -26,8 +26,10 @@ px.import({
 
             init: function (container, allChannelList, currentChannelCellNumber, width, tileHeight) {
 
+                // we keep track of the top most and bottom most cell indices tracked
                 this.topCell = currentChannelCellNumber
                 this.bottomCell = currentChannelCellNumber + cellsPerSector
+
                 this.allChannelList = allChannelList
 
                 this.currentYLoc = 0
@@ -142,7 +144,42 @@ px.import({
                 })
                 return {container: sector}
             },
+            removeTopSector: function(relativeSector){
+                // de reference the top sector and then update the top most cell index
+                // also remove it from the scene
+                if (relativeSector.top != null) {
+                    relativeSector.top.container.removeAll()
+                    relativeSector.top.container.remove()
+                    relativeSector.top = null    
+                    var start = this.topCell + cellsPerSector  
+                    if (start < 0) {
+                        this.topCell = this.allChannelList.length - start
+                    } else {
+                        this.topCell += cellsPerSector
+                    }
+                }
+            },
+            removeBottomSector:function(relativeSector){
+                // de-reference the bottom sector and then update the bottom most cell index
+                // also remove it from the scene
+                if (relativeSector.bottom != null) {
+                    relativeSector.bottom.container.removeAll()
+                    relativeSector.bottom.container.remove()
+                    relativeSector.bottom = null  
+                    var end = this.bottomCell + cellsPerSector
+                    if (end > this.allChannelList.length) {
+                        this.bottomCell = end + this.allChannelList.length
+                    } else {
+                        this.bottomCell -= cellsPerSector
+                    }  
+                }
+            },
             addTopSector: function (relativeSector) {
+
+                // return if a top sector is already present
+                if (relativeSector.top != null)
+                    return
+
                 var channelList = []
 
                 var start = this.topCell - cellsPerSector
@@ -162,12 +199,17 @@ px.import({
                     this.topCell -= cellsPerSector
 
                 }
-                var sectorYOffset = relativeSector.container.y - relativeSector.container.h //- borderWidth
+                var sectorYOffset = relativeSector.container.y - relativeSector.container.h 
                 var sector = this._addSector(channelList, sectorYOffset)
                 relativeSector.top = sector
                 sector.bottom = relativeSector
             },
             addBottomSector: function (relativeSector) {
+
+                // return if a bottom sector is already present
+                if (relativeSector.bottom != null)
+                    return
+
                 var channelList = []
                 var end = this.bottomCell + cellsPerSector
                 if (end > this.allChannelList.length) {
@@ -184,7 +226,7 @@ px.import({
                     }
                     this.bottomCell += cellsPerSector
                 }
-                var sector = this._addSector(channelList, relativeSector.container.y + relativeSector.container.h + borderWidth)
+                var sector = this._addSector(channelList, relativeSector.container.y + relativeSector.container.h)
                 relativeSector.bottom = sector
                 sector.top = relativeSector
             }

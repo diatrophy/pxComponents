@@ -9,13 +9,15 @@ px.import({
     math: '../math.js',
     sectors: 'sectors.js',
     cellRelate: 'cellRelate.js',
-    gridHelper: 'gridHelper.js'
+    gridHelper: 'gridHelper.js',
+    logger: '../logger.js'
 }).then(function importsAreReady(imports) {
 
     var image = imports.image,
         imageEffects = imports.imageEffects,
         cellRelate = imports.cellRelate(),
-        gridHelper = imports.gridHelper()
+        gridHelper = imports.gridHelper(),
+        logger = imports.logger()
 
     var transparentColor = 0xffffff00
     var greyColor = 0x999999ff
@@ -50,14 +52,15 @@ px.import({
                 return this
             },
             render: function (callback) {
-
+               
                 var c = this.container
 
-                var sectorCurrent = this.sectors.init(c, borderWidth, this.tileHeight * 5)
+                var sectorCurrent = this.sectors.init(c, borderWidth, c.h)
 
                 var cells = this._addCellsToSector(this.listingDataInView, sectorCurrent, 0)
 
                 this.addTopSector(this.listingDataTop, sectorCurrent)
+
                 this.addBottomSector(this.listingDataBottom, sectorCurrent)
                 this.addRightSector(this.listingDataRight, sectorCurrent)
                 this.addTopRightSector(this.listingDataTopRight, sectorCurrent)
@@ -123,6 +126,15 @@ px.import({
                                 tileSelected(c)                 // if this is the initial cell, it is selected
                         })
                     }
+
+                    cell.container.on("onResize",function(w,h){
+                        console.log(' ----------------------------------------------------------resizing ')
+                    })
+
+                    cell.container.on("onSize",function(w,h){
+                        console.log(' ----------------------------------------------------------resizing ')
+                    })
+
                 }, function (cells) {
                     // nothing to do post tile rendering
                 })
@@ -187,6 +199,54 @@ px.import({
                 var sector = this.sectors.extendDown(relativeSector)
                 var cells = this._addCellsToSector(data, sector)
                 cellRelate.bottomStitchSectors(relativeSector.cells, relativeSector.data, cells, data)
+            },
+            _removeSector: function(sector) {
+                if (sector.top != null) {
+                    cellRelate.topUnStitchSector(sector.cells)
+                    sector.top.bottom = null
+                    sector.top = null
+                }
+                if (sector.bottom != null) {
+                    cellRelate.bottomUnStitchSector(sector.cells)
+                    sector.bottom.top = null
+                    sector.bottom = null
+                }
+                if (sector.right != null) {
+                    cellRelate.rightUnStitchSector(sector.cells)
+                    sector.right.left = null
+                    sector.right = null
+                }
+                if (sector.left != null) {
+                    cellRelate.leftUnStitchSector(sector.cells)
+                    sector.left.right = null
+                    sector.left = null
+                }
+                sector.container.removeAll()
+                sector.container.remove()
+            },
+            removeTopSector: function(relativeSector) {
+                // if a sector exists to the top - then remove it from the scene and de-reference
+                if (relativeSector.top != null) {
+                    this._removeSector(relativeSector.top)
+                }
+            },
+            removeTopRightSector: function(relativeSector) {
+                // if a sector exists to the top right - then remove it from the scene and de-reference
+                if (relativeSector.top != null && relativeSector.top.right != null) {
+                    this._removeSector(relativeSector.top.right)
+                }
+            },
+            removeBottomSector: function(relativeSector) {
+                // if a sector exists to the bottom - then remove it from the scene and de-reference
+                if (relativeSector.bottom != null) {
+                    this._removeSector(relativeSector.bottom)
+                }
+            },
+            removeBottomRightSector: function(relativeSector) {
+                // if a sector exists to the bottom right - then remove it from the scene and de-reference
+                if (relativeSector.bottom != null && relativeSector.bottom.right != null) {
+                   this. _removeSector(relativeSector.bottom.right)
+                }
             },
             // Adds a sector to the right of the current sector and populates it with cells containing the listing data
             addRightSector: function (data, relativeSector) {

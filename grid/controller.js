@@ -44,7 +44,7 @@ px.import({
             // determines if the currently selected cell is in a bottom row of the view port
             _cellIsAtBottomRow: function (cell) {
                 var y = this.getCellViewPortY(cell) + this.tileH * 1.5
-                return y > this.container.h
+                return y > this.containerGrid.h
             },
             // determines if the currently selected cell is in a top row of the view port
             _cellIsAtTopRow: function (cell) {
@@ -202,6 +202,7 @@ px.import({
 
                     if (targetCell != null) {
 
+                        // increment the individual counters 
                         this.currentRow++
                         this.currentSectorRow++
                         if (this.currentViewRow < 4)
@@ -337,22 +338,21 @@ px.import({
             // additionally if the data in the next sector (of motion ex. top of next if movement is up arrow)
             // is empty then the second callback is invoked - that triggers fetching off and loading data
             sectorChange: function (currentSector, currentScrollingSector, currentTimeSector,
-                                    prevCell, targetCell, overrideDirection, sectorChangeCallback, loadDataCallback) {
+                                    prevCell, targetCell, overrideDirection, sectorChangeCallback, loadDataCallback,
+                                    unloadActionCallback) {
 
                 var nextSector, nextScrollingSector, nextTimeSector, loadNeighborDirection,
+                    unloadScrollingSector,
                     previous = prevCell.config,
                     target = targetCell.config,
                     previousContainerId = prevCell.container.parent.id,
                     targetContainerId = targetCell.container.parent.id
-
-                logger.log('-------- prev ontiner ' + previousContainerId + ":" + targetContainerId)
 
                 if (previousContainerId != targetContainerId) {
 
                     if (previous.bottomRow && target.topRow || overrideDirection == 'bottom') {
 
                         // we've crossed into the sector below
-
                         nextSector = currentSector.bottom
                         nextScrollingSector = currentScrollingSector.bottom
                         if (nextSector.bottom == null)
@@ -385,8 +385,10 @@ px.import({
                     if (nextSector != null) { // only invoke the callback if the sector has changed
 
                         sectorChangeCallback(nextSector, nextScrollingSector, nextTimeSector)
-                        if (loadNeighborDirection != null)
+                        if (loadNeighborDirection != null) {
                             loadDataCallback(loadNeighborDirection, nextSector, nextScrollingSector, nextTimeSector)
+                            unloadActionCallback(currentScrollingSector,currentSector,loadNeighborDirection)
+                        }
                     }
                 }
             }
@@ -446,14 +448,26 @@ px.import({
                     })
                 }
 
+                var unloadActionCallback = function(currentScrollingSector,currentSector,loadNeighborDirection){
+
+                    if (loadNeighborDirection == "top") {
+                        uiScrollingList.removeBottomSector(currentScrollingSector.bottom)
+                        uiGrid.removeBottomRightSector(currentSector.bottom)
+                        uiGrid.removeBottomSector(currentSector.bottom)
+                    } else if (loadNeighborDirection == "bottom") {
+                        uiScrollingList.removeTopSector(currentScrollingSector.top)
+                        uiGrid.removeTopRightSector(currentSector.top)
+                        uiGrid.removeTopSector(currentSector.top)
+                    }
+                }
+
                 this.sectorChange(cSector, currentScrollingSector, currentTimeSector,
                     prevCell, targetCell,
                     overrideDirection,
                     sectorChangeActionCallback,
-                    loadActionCallback)
-            }
-
-            ,
+                    loadActionCallback,
+                    unloadActionCallback)
+            },
             handleTimeBarAnimate: function (timeAnimateConfig) {
 
                 if (timeAnimateConfig != null) {
@@ -555,7 +569,7 @@ px.import({
             }
             ,
             // registers various components with this controller, and also establishes what to do when keys are pressed
-            register: function (container, containerGrid, uiGridSelector, uiScrollingList, uiGrid, uiGridTime, currentCell, scrollingListWidth,
+            register: function (containerGrid, uiGridSelector, uiScrollingList, uiGrid, uiGridTime, currentCell, scrollingListWidth,
                                 tileH, borderWidth, currentRow) {        // initialize the container with the key pressed hooks
 
                 var scrollY = 0
@@ -565,7 +579,6 @@ px.import({
 
                 var t = this
 
-                t.container = container
                 t.containerGrid = containerGrid
                 t.currentCell = currentCell
                 t.currentRow = currentRow
@@ -573,14 +586,14 @@ px.import({
                 t.uiGridTime = uiGridTime
                 t.uiGridSelector = uiGridSelector
 
-                container.focus = true
+                containerGrid.focus = true
 
                 // move selector to current cell
                 uiGridSelector
                     .init(tileH, containerGrid)
                     .render(currentCell)
 
-                container.on("onKeyDown", function (e) {
+                containerGrid.on("onKeyDown", function (e) {
 
                     var currentCell = t.currentCell,
                         currentSector = uiGrid.sectors.currentSector,
@@ -646,5 +659,5 @@ px.import({
 
 }).catch(function (err) {
     console.error("Error on Controller : ")
-    console.log(err)
+    console.log(err.stack)
 });

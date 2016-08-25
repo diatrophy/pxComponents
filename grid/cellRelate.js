@@ -5,17 +5,19 @@
 // Jason Coelho
 
 px.import({
-    math            : '../math.js',
-    gridHelper      : 'gridHelper.js'
+    math: '../math.js',
+    gridHelper: 'gridHelper.js',
+    logger: '../logger.js'
 }).then(function importsAreReady(imports) {
 
     var gridHelper = imports.gridHelper(),
+        logger = imports.logger(),
         DEFAULT_BUCKET_SIZE = gridHelper.DEFAULT_BUCKET_SIZE
 
     module.exports = function () {
 
         return {
-            proximitySearch : function(cells,listingDataInView){
+            proximitySearch: function (cells, listingDataInView) {
 
                 // the following is a loose adaptation of a linear proximity search.
                 // https://en.wikipedia.org/wiki/Nearest_neighbor_search
@@ -51,7 +53,7 @@ px.import({
                 var cellCount = 0
                 var prevRowTrackerMap = null
 
-                listingDataInView.forEach(function(row) {               // 1st loop - channels
+                listingDataInView.forEach(function (row) {               // 1st loop - channels
 
                     var prevCell = null
 
@@ -65,7 +67,7 @@ px.import({
                     }
 
                     // loops through all the listings per channel.
-                    row.forEach(function(cellData){                     // 2nd loop - channel listings
+                    row.forEach(function (cellData) {                     // 2nd loop - channel listings
 
                         // logic for setting the prev and next cell
                         var currentCell = cells[cellCount]
@@ -73,7 +75,7 @@ px.import({
                         // determine left/right columns, in some cases left == right (because single cell rows)
                         if (columnCount == 0)
                             currentCell.config.leftColumn = true
-                        if (columnCount == row.length-1)
+                        if (columnCount == row.length - 1)
                             currentCell.config.rightColumn = true
 
                         // the easy part - linking the previous cell to the next and vice-versa
@@ -88,7 +90,7 @@ px.import({
                         // lookup map for each bucket. buckets are numbered by DEFAULT_BUCKET_SIZE increments
                         // Cells can span across a sector(s), hence buckets max out at 100
                         // TODO - need to handle offset
-                        var currentCellBuckets = gridHelper.calculateNumberOfCellBuckets(currentCell.config.data.p,currentCell.config.data.o)
+                        var currentCellBuckets = gridHelper.calculateNumberOfCellBuckets(currentCell.config.data.p, currentCell.config.data.o)
                         for (var i = 0; i < currentCellBuckets; i++) {
                             if (currentCellTrack < 100) {
                                 currentRowTrackerMap[currentCellTrack] = currentCell
@@ -118,7 +120,7 @@ px.import({
                             }
                         }
 
-                        if (rowCount == listingDataInView.length-1)
+                        if (rowCount == listingDataInView.length - 1)
                             currentCell.config.bottomRow = true         // mark this as a bottom row in this sector
 
                         cellCount++
@@ -130,12 +132,12 @@ px.import({
                     rowCount++
                 })
             },
-            _proximitySearchTopBottom : function(cells,listingDataInView){
+            _proximitySearchTopBottom: function (cells, listingDataInView) {
 
                 var cellCount = 0
                 var prevRowTrackerMap = null
 
-                listingDataInView.forEach(function(row) {
+                listingDataInView.forEach(function (row) {
 
                     var currentRowTrackerMap = {}
                     var currentCellTrack = DEFAULT_BUCKET_SIZE
@@ -144,13 +146,13 @@ px.import({
                         row.push({}) // push a dummy val so that the following loop executes
                     }
 
-                    row.forEach(function(cellData){
+                    row.forEach(function (cellData) {
 
                         // logic for setting the prev and next cell
                         var currentCell = cells[cellCount]
-                        var currentCellBuckets = gridHelper.calculateNumberOfCellBuckets(currentCell.config.data.p,currentCell.config.data.o)
+                        var currentCellBuckets = gridHelper.calculateNumberOfCellBuckets(currentCell.config.data.p, currentCell.config.data.o)
                         var nT = currentCellTrack
-                        for (var i = 0; i < currentCellBuckets;i++) {
+                        for (var i = 0; i < currentCellBuckets; i++) {
                             currentRowTrackerMap[currentCellTrack] = currentCell
                             currentCellTrack += DEFAULT_BUCKET_SIZE
                         }
@@ -172,61 +174,102 @@ px.import({
                     prevRowTrackerMap = currentRowTrackerMap
                 })
             },
-            // takes 2 sectors and creates relationships between the last and first row of the container above and below
-            bottomStitchSectors : function(topCells,topData,bottomCells,bottomData){
-
-                var bottomRow = []
-                for (var i = 0; i < topCells.length; i++) {         // TODO - OPTIMIZE - don't need to traverse whole array
-                    if (topCells[i].config.bottomRow)               // should traverse in reverse order and then flip the result
-                        bottomRow.push(topCells[i])
-                }
-                var topRow = []
-                for (var i = 0; i < bottomCells.length; i++) {
-                    if (bottomCells[i].config.topRow)
-                        topRow.push(bottomCells[i])
-                    else
-                        break                                       // short circuit
-                }
-
-                var data = []
-                data.push(topData[topData.length-1])
-                data.push(bottomData[0])
-
-                this._proximitySearchTopBottom(bottomRow.concat(topRow),data)
+            // returns an array containing the bottom rows of a group of cells
+            _getBottomRow: function (cells) {
+                return cells.filter(function(cell){
+                    return cell.config.bottomRow
+                })
             },
-            // takes 2 sectors and creates relationships between the prev and next row of the containers next to each other
-            sideStitchSectors : function(leftCells,rightCells){
+            // returns an array containing the top rows of a group of cells
+            _getTopRow: function (cells) {
+                return cells.filter(function(cell){
+                    return cell.config.topRow
+                })
+            },
+            // takes 2 sectors and creates relationships between the last and first row of the container above and below
+            bottomStitchSectors: function (topCells, topData, bottomCells, bottomData) {
 
-                var leftColumn = []
-                for (var i = 0; i < leftCells.length; i++) {
-                    // TODO - OPTIMIZE - don't need to traverse whole array
-                    // should traverse in reverse order and then flip the result
-                    if (leftCells[i].config.data.placeholder == true)
-                        leftColumn.push(leftCells[i])
-                    else if (leftCells[i].config.rightColumn)
-                        leftColumn.push(leftCells[i])
-                }
-                var rightColumn = []
-                for (var i = 0; i < rightCells.length; i++) {
-                    if (rightCells[i].config.leftColumn)
-                        rightColumn.push(rightCells[i])
-                    else if (rightCells[i].config.data.placeholder == true) {
-                        rightColumn.push(rightCells[i])
-                    }
-                }
+                var bottomRow = this._getBottomRow(topCells),
+                    topRow = this._getTopRow(bottomCells)
 
-                if (rightColumn.length == leftColumn.length) {
+                // create a new data set containing the bottom row of the top sector, and the top row of the bottom sector
+                var data = [topData[topData.length - 1], bottomData[0]]
 
-                    for (var i = 0; i < rightColumn.length; i++) {
-                        leftColumn[i].config.nextCell = rightColumn[i]
-                        rightColumn[i].config.prevCell = leftColumn[i]
-                    }
+                this._proximitySearchTopBottom(bottomRow.concat(topRow), data)
+            },
+            // de-reference the top most row of the sector below the cells passed in
+            bottomUnStitchSector: function (cells) {
+
+                var bottomRow = this._getBottomRow(cells)
+                bottomRow.forEach(function (cell) {
+                    if (cell.config.bottomCell != null)
+                        cell.config.bottomCell.config.topCell = null    // first deference the bottom cell from pointing to this cell
+                    cell.config.bottomCell = null                       // then remove the reference to the bottom cell
+                })
+            },
+            // de-reference the bottom most row of the sector above the cells passed in
+            topUnStitchSector: function (bottomCells) {
+
+                var topRow = this._getTopRow(bottomCells)
+                topRow.forEach(function (cell) {
+                    if (cell.config.topCell != null)
+                        cell.config.topCell.config.bottomCell = null    // first de-reference the top cell from pointing to this cell
+                    cell.config.topCell = null                          // then remove the reference to the top cell
+                })
+            },
+            // returns an array containing the left column
+            _getLeftColumn : function(cells) {
+                return cells.filter(function(cell){
+                    return ((cell.config.data.placeholder == true) || cell.config.leftColumn)
+                })
+            },
+            // returns an array containing the right column
+            _getRightColumn : function(cells) {
+                return cells.filter(function(cell){
+                    return ((cell.config.data.placeholder == true) || cell.config.rightColumn)
+                })
+            },
+            // de-reference the cells on the left side
+            leftUnStitchSector: function (cells) {
+
+                var leftColumn = this._getLeftColumn(cells)
+                leftColumn.forEach(function (cell) {
+                    if (cell.config.prev != null)
+                        cell.config.prev.config.next = null     // first de-reference the prev cell from pointing to this cell
+                    cell.config.prev = null                     // then remove the reference to the prev cell
+                })
+            },
+            // de-reference the cells on the right side
+            rightUnStitchSector: function (cells) {
+
+                var rightColumn = this._getRightColumn(cells)
+                rightColumn.forEach(function (cell) {
+                    if (cell.config.next != null)
+                        cell.config.next.config.prev = null     // first de-reference the next cell from pointing to this cell
+                    cell.config.next = null                     // then remove the reference to the next cell
+                })
+            },
+            // takes 2 sectors and creates relationships between the prev and next columns of the containers next to each other
+            sideStitchSectors: function (leftCells, rightCells) {
+
+                var leftCellsRightColumn = this._getRightColumn(leftCells)
+                var rightCellsLeftColumn = this._getLeftColumn(rightCells)
+
+                if (rightCellsLeftColumn.length == leftCellsRightColumn.length) {
+
+                    // loop through the left column and create relation to the right column
+                    leftCellsRightColumn.forEach(function(cell,i){
+                        cell.config.nextCell = rightCellsLeftColumn[i]
+                        rightCellsLeftColumn[i].config.prevCell = cell
+                    })
                 } else {
-                    console.log('mismatched columns - ' + leftColumn.length +"----"+rightColumn.length +" --- " + "original lengths - " +
-                        leftCells.length +":" + rightCells.length)
+                    console.log('mismatched columns - ' + leftCellsRightColumn.length + "----" + rightCellsLeftColumn.length + " --- " + "original lengths - " +
+                        leftCells.length + ":" + rightCells.length)
                 }
             },
         }
-
     }
-})
+}).catch(function (err) {
+    console.error("Error on cell relate : ")
+    console.log(err.stack)
+});

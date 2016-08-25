@@ -33,7 +33,7 @@ px.import({
             },
             // Adds a new sector below the current sector
             extendDown : function(relativeSector) {
-                var newSectorYLoc = relativeSector.container.y + this.sectorHeight  + this.borderWidth
+                var newSectorYLoc = relativeSector.container.y + this.sectorHeight //+ this.borderWidth
                 var newSectorXLoc = relativeSector.container.x
                 var sector = this._createSector(newSectorXLoc,newSectorYLoc)
                 relativeSector.bottom = {container:sector,top:relativeSector}

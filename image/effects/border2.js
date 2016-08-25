@@ -32,22 +32,25 @@ module.exports = function (scene, uiImage, callbackList) {
     }
 
     // create a rectangle to simulate a border (TOP)
-    scene.create(getTopConfig())
+    var topConfig = getTopConfig()
+    if (topConfig.h != 0)
+        scene.create(topConfig)
 
     // create a rectangle to simulate a border (BOTTOM)
-    var bottomConfig = getTopConfig()
+    var bottomConfig = topConfig
     bottomConfig.y = uiImage['container'].h - effects['border2'].bPadding // ensure that the border is inset
     bottomConfig.h = effects['border2'].bPadding
     scene.create(bottomConfig)
 
     // create a rectangle to simulate a border (LEFT)
-    scene.create(getLeftConfig())
+    var leftConfig = getLeftConfig()
+    if (leftConfig.w != 0)
+        scene.create(leftConfig)
 
     // create a rectangle to simulate a border (RIGHT)
-    var rightConfig = getLeftConfig()
+    var rightConfig = leftConfig
     rightConfig.x = uiImage['container'].w - effects['border2'].rPadding // ensure that the border is inset
     rightConfig.w = effects['border2'].rPadding
     scene.create(rightConfig)
-
 }
 

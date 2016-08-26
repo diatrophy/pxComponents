@@ -5,85 +5,85 @@
 // Instant film is available in sizes from 24 mm × 36 mm (similar to 135 film) up to 50.8 cm × 61 cm size, 
 // with the most popular film sizes for consumer snapshots being approximately 83mm × 108mm (the image 
 // itself is smaller as it is surrounded by a border).
+//
+// 1:17:1
+//
+// 40/60 border top ratio
+// 40/160 border bottom ratio
+// 682/552 image
 
-px.import({
-  constants:'constants.js'
-}).then(function importsAreReady(imports) {
+module.exports = function (scene, uiImage, callbackList) {
 
-    var constants = imports.constants
+    var effects = uiImage.effects.effects,
+        sidePadding = effects['polaroid'].sidePadding,
+        topPadding = effects['polaroid'].topPadding,
+        bottomPadding = effects['polaroid'].bottomPadding
 
-    module.exports =  function(scene,uiImage,callbackList) {
+    // create a rectangle to simulate a polaroid
+    uiImage["polaroid"] = scene.create({
+        t: "rect",
+        parent: uiImage['container'],
+        fillColor: 0xF8F8F8FF,
+        lineColor: 0xCCCCCC80,
+        a: 0,
+        lineWidth: 4,
+        w: effects['polaroid'].w,
+        h: effects['polaroid'].h
+    })
 
-        var polaroid = scene.create({       // create a rectangle to simulate a polaroid
-            t:"rect",
-            parent:uiImage['container'],
-            fillColor:0xF8F8F8FF,
-            lineColor:0xCCCCCC80,
-            a:0,
-            lineWidth:4})   
+    // update the container w/h to match that of the polaroid
+    uiImage.container.w = uiImage['polaroid'].w
+    uiImage.container.h = uiImage['polaroid'].h
 
-        uiImage["polaroid"] = polaroid
+    // create an rectangle object (with clip = true) that will crop the actual image
+    var cropper = scene.create({
+        t: "rect",
+        parent: uiImage['container'],
+        clip: true,
+        a: 1,
+        y: topPadding,
+        x: sidePadding,
+        h: uiImage.container.h - topPadding - bottomPadding,
+        w: uiImage.container.w - (sidePadding * 2)
+    })
+    uiImage['cropper'] = cropper
 
-        var effects = uiImage.effects.effects
+    // register a callback to re-size the image after the image resource has been downloaded
+    // and available / rendered
+    callbackList.push(function (uiImage, scale) {
 
-        var polaroidWidth = effects['polaroid'].w
+        var readyImage = uiImage.image,
+            imgWH = { w: readyImage.w, h: readyImage.h }
 
-        uiImage.container.sx = uiImage.container.sy = 1
-        uiImage.container.w = polaroid.w = polaroidWidth 
-        uiImage.container.h = polaroid.h = effects['polaroid'].h
+        // use the width and height from the image resource if available
+        if (readyImage.resource != null)
+            imgWH = { w: readyImage.resource.w, h: readyImage.resource.h }
 
-        var sidePadding = effects['polaroid'].sidePadding
-        var topPadding = effects['polaroid'].topPadding
-        var bottomPadding = effects['polaroid'].bottomPadding
+        // we change the image's parent to be the cropper, so that the image gets cropped via association
+        // with parent
+        readyImage.parent = cropper
+        readyImage.stretchX = readyImage.stretchY = 1
 
-        var cropper = scene.create({ t:"rect",parent:uiImage['container'], clip:true,a:1 }) 
-        uiImage['cropper'] = cropper
-        cropper.y += effects['polaroid'].topPadding
-        cropper.x = sidePadding          
-        cropper.h = uiImage.container.h - topPadding - bottomPadding
-        cropper.w = uiImage.container.w - (sidePadding * 2)
+        // if the width of the image is greater or equal than the height then we need to 
+        // scale and crop across height, otherwise we scale across the width
+        if (imgWH.w >= imgWH.h) {
 
-        // register a callback to re-size the polaroid frame after the image has been rendered
-        callbackList.push(function (uiImage,scale){
+            readyImage.h = cropper.h
 
-            var readyImage = uiImage.image
-   
-            readyImage.parent = cropper
+            // now need to determine how much more to scale
+            readyImage.w = Math.round(readyImage.h * imgWH.w / imgWH.h)
+            readyImage.x = -Math.round(((readyImage.w - uiImage.container.w) / 2)) - sidePadding
 
-            // we set the image h/w to the resource if available
-            var imgW = readyImage.w
-            var imgH = readyImage.h
-            if (readyImage.resource != null) {
-                imgH = readyImage.resource.h
-                imgW = readyImage.resource.w
-            }
+        } else {
 
-            if (imgW >= imgH) {
+            readyImage.w = cropper.w
 
-                // scale and crop across height
-                readyImage.h = cropper.h
+            // now need to determine how much more to scale
+            readyImage.h = Math.round(readyImage.w * imgWH.h / imgWH.w)
+            readyImage.y = -Math.round(((readyImage.h - uiImage.container.h) / 2)) - topPadding
+        }
 
-                // now need to determine how much more to scale
-                readyImage.w = Math.round(readyImage.h * imgW / imgH)
-                readyImage.x = -Math.round(((readyImage.w - uiImage.container.w) / 2 )) - sidePadding
-                
-            } else {
+        uiImage["polaroid"].a = 1          // make the polaroid effect visible
+    })
+}
 
-                // scale and crop across width
-                readyImage.w = cropper.w
-
-                // now need to determine how much more to scale
-                readyImage.h = Math.round(readyImage.w * imgH / imgW)
-                readyImage.y = -Math.round(((readyImage.h - uiImage.container.h) / 2 )) - topPadding                   
-            }
-
-            // 1:17:1
-
-            // 40/60 border top ratio
-            // 40/160 border bottom ratio
-            // 682/552 image
-
-            polaroid.a = 1          // make the polaroid effect visible
-        })    
-    }
-})

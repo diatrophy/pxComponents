@@ -1,0 +1,5 @@
+# use this script to server pxComponents locally
+# Requirements - http-server (can be installed via npm using:
+# npm -g http-server
+
+http-server -p 8090

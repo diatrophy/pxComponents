@@ -67,6 +67,7 @@ px.import({
                     finalCallback(imgList)
                 })
             },
+            // renders an image with effects
             _renderWithEffects : function(uiImage,callback) {
                 
                 var effects = uiImage.effects.effects

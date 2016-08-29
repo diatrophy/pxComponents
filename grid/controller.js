@@ -448,6 +448,7 @@ px.import({
                     })
                 }
 
+                // function for destroying sectors no longer visible to the viewer
                 var unloadActionCallback = function(currentScrollingSector,currentSector,loadNeighborDirection){
 
                     if (loadNeighborDirection == "top") {
@@ -537,7 +538,6 @@ px.import({
                                     animationSpeed, scene.animation.TWEEN_STOP,
                                     scene.animation.OPTION_LOOP, 1)
 
-
                             } else {
                                 cell.title.animateTo({
                                         x: cell.titleXPosition,
@@ -548,7 +548,6 @@ px.import({
                             }
                         }
                     }
-
                 }
 
                 if (this.currentSectorRow == this.currentViewRow) {

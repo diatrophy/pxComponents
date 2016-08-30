@@ -144,13 +144,23 @@ px.import({
                 })
                 return {container: sector}
             },
+            _removeSector: function(sector){
+                if (sector.top != null) {
+                    sector.top.bottom = null
+                    sector.top = null
+                }
+                if (sector.bottom != null) {
+                    sector.bottom.top = null
+                    sector.bottom = null
+                }
+                sector.container.removeAll()
+                sector.container.remove()
+            },
             removeTopSector: function(relativeSector){
                 // de reference the top sector and then update the top most cell index
                 // also remove it from the scene
                 if (relativeSector.top != null) {
-                    relativeSector.top.container.removeAll()
-                    relativeSector.top.container.remove()
-                    relativeSector.top = null    
+                    this._removeSector(relativeSector.top)    
                     var start = this.topCell + cellsPerSector  
                     if (start < 0) {
                         this.topCell = this.allChannelList.length - start
@@ -163,9 +173,7 @@ px.import({
                 // de-reference the bottom sector and then update the bottom most cell index
                 // also remove it from the scene
                 if (relativeSector.bottom != null) {
-                    relativeSector.bottom.container.removeAll()
-                    relativeSector.bottom.container.remove()
-                    relativeSector.bottom = null  
+                    this._removeSector(relativeSector.bottom)  
                     var end = this.bottomCell + cellsPerSector
                     if (end > this.allChannelList.length) {
                         this.bottomCell = end + this.allChannelList.length

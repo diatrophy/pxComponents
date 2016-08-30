@@ -448,6 +448,7 @@ px.import({
                     })
                 }
 
+                // function for destroying sectors no longer visible to the viewer
                 var unloadActionCallback = function(currentScrollingSector,currentSector,loadNeighborDirection){
 
                     if (loadNeighborDirection == "top") {
@@ -491,30 +492,30 @@ px.import({
                         callback()
                     })
                 }
-            }
-            ,
+            },
+            // as the grid scroll left or right, the title in each cell can get obscured. This function
+            // re-adjusts the title inside the cells, so that they scroll in the opposite direction
+            // until they are visible.
             handleTitleReadjustment: function (uiGrid, containerGridXPosition, scrollXOffset) {
 
                 if (scrollXOffset == 0)
-                    return
+                    return      // no point proceeding further as grid did not scroll left of right
 
-                var t = this
+                var t = this    // for references inside the inner function
 
                 var adjustTitles = function (targetSector) {
 
                     var rows = targetSector.data
 
-                    // nested loop through all cells in the reverse order, break when first negative cell encountered
-                    // targetSector.data.forEach(function (row) {
-                    for (var k = 0; k < rows.length; k++) {
+                    targetSector.data.forEach(function (rows) {
 
-                        var row = rows[k]
-
-                        for (var i = row.length - 1; i >= 0; i--) {
-                            var cell = row[i].cell
+                        // nested loop through all cells in the reverse order, 
+                        // break when first negative cell encountered
+                        rows.forEach(function(row){
 
                             // calculate the cells X1 and X2
-                            var cellViewPortXWithRespectToX = t.getCellViewPortXWithRespectToX(cell, containerGridXPosition),
+                            var cell = row.cell,
+                                cellViewPortXWithRespectToX = t.getCellViewPortXWithRespectToX(cell, containerGridXPosition),
                                 off = cellViewPortXWithRespectToX + scrollXOffset,
                                 offX2 = off + cell.container.w
 
@@ -524,48 +525,60 @@ px.import({
 
                             if (off < 0 && offX2 > 0) {
 
-                                var drift = 0
-                                if (cellViewPortXWithRespectToX > 0)
-                                    drift = cellViewPortXWithRespectToX
-                                var x = Math.abs(off) + cell.title.y
-                                var w = cell.container.w - Math.abs(off) - cell.title.y
-
+                                // if this is a partially obscured cell, then animate the title so that it is visible
                                 cell.title.animateTo({
-                                        x: x,
-                                        w: w
+                                        x: Math.abs(off) + cell.title.y,
+                                        w: cell.container.w - Math.abs(off) - cell.title.y
                                     },
-                                    animationSpeed, scene.animation.TWEEN_STOP,
-                                    scene.animation.OPTION_LOOP, 1)
-
+                                    animationSpeed, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
 
                             } else {
+
+                                // otherwise reset the title to its original position
                                 cell.title.animateTo({
-                                        x: cell.titleXPosition,
-                                        w: cell.image.w - cell.titleXPosition
+                                        x: cell.titleXPosition, // use the original position, as
+                                        w: cell.image.w - cell.title.y
                                     },
-                                    animationSpeed, scene.animation.TWEEN_STOP,
-                                    scene.animation.OPTION_LOOP, 1)
+                                    animationSpeed, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
                             }
-                        }
-                    }
-
+                        })
+                    })
                 }
 
-                if (this.currentSectorRow == this.currentViewRow) {
+                // return a list containing the current sector anf the sector to the left and right to it
+                var getAdjustmentSectors = function (sector) {
 
-                    // we only need to scan the current sector and the sector to the left because the sector and view rows are aligned
+                    var sectors = []
 
-                    var targetSector = uiGrid.sectors.currentSector.left
+                    if (sector != null) {
+                        sectors.push(sector)
 
-                    // if there is no left sector - it is possible that scrolling occurred while in the current sector
-                    if (targetSector != null) {
-                        logger.log('left sector')
-                        adjustTitles(targetSector)
+                        // if there is no left sector - it is possible that scrolling occurred while in the current sector
+                        var targetSector = sector.left
+                        if (targetSector != null) 
+                            sectors.push(targetSector)
+                    
+                        // if there is no right sector - it is possible that scrolling occurred while in the current sector
+                        targetSector = sector.right
+                        if (targetSector != null) 
+                            sectors.push(targetSector)
                     }
-
-                    logger.log('currentSector')
-                    adjustTitles(uiGrid.sectors.currentSector)
+                    return sectors
                 }
+
+                var sectorsToAdjust = getAdjustmentSectors(uiGrid.sectors.currentSector)
+
+                // if the current sector does NOT occupy the entire screen re-adjust either the top or 
+                // bottom sector
+                if (this.currentSectorRow > this.currentViewRow) {
+                    sectorsToAdjust = sectorsToAdjust.concat(getAdjustmentSectors(uiGrid.sectors.currentSector.bottom))
+                } else if (this.currentSectorRow < this.currentViewRow) {
+                    sectorsToAdjust = sectorsToAdjust.concat(getAdjustmentSectors(uiGrid.sectors.currentSector.top))
+                }
+
+                sectorsToAdjust.forEach(function(sector){
+                    adjustTitles(sector)
+                })
             }
             ,
             // registers various components with this controller, and also establishes what to do when keys are pressed

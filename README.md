@@ -16,6 +16,8 @@ pxComponents simplifies the creation of pxscene objects like **Image** and helps
                   .dropShadow(shadowUrl)
                 ))
 
+## Wiki 
+
 **For more info checkout the ** [wiki](https://github.com/diatrophy/pxComponents/wiki)
 
 # Common Documentation locations -

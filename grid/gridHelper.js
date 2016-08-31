@@ -92,6 +92,8 @@ module.exports = function () {
 
             var buckets = 1        // default to 1 bucket
 
+            // a negative offset only occurs with starting cells whose start time is in the past, however
+            // the end time is in the future Ex. Show in progress, in which case the percentage need to be adjusted
             if (offset != null && offset < 0)
                 percentage += offset
 

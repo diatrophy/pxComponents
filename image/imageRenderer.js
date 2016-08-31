@@ -88,9 +88,9 @@ px.import({
                 preEffects.forEach(applyEffectFunction)
 
                 // then create the image, with the container above as parent
-                var imageConfig = {t:'image',url:uiImage.config.url,parent:container}
+                var imageConfig = { t: 'image', parent: container, id: uiImage.config.id }
                 // if the image is a rectangle then use the original config
-                if (uiImage.originalT == 'rect'){
+                if (uiImage.originalT == 'rect') {
                     imageConfig.w = uiImage.config.w
                     imageConfig.h = uiImage.config.h
                     imageConfig.t = 'rect'
@@ -98,6 +98,8 @@ px.import({
                     imageConfig.fillColor = uiImage.config.fillColor
                     imageConfig.lineColor = uiImage.config.lineColor
                     imageConfig.lineWidth = uiImage.config.lineWidth
+                } else {
+                    imageConfig.url = uiImage.config.url
                 }
 
                 var defaultImageConfig = {t:'image',url:defaultUrl,parent:container}

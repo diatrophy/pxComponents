@@ -73,7 +73,11 @@ px.import({
 
                 // helper function to create each cell
                 var cellFunction = function (container, alpha, xOffset, yOffset, wid, tileH, cellData) {
+
+                    var id = "cell-" + Math.random()
+
                     var cell = image({
+                        id: id,
                         t: 'rect',
                         parent: container,
                         fillColor: transparentColor,
@@ -198,6 +202,10 @@ px.import({
 
                 var sector = this.sectors.extendDown(relativeSector)
                 var cells = this._addCellsToSector(data, sector)
+            
+            cells.forEach(function(cell){
+                console.log('------MRS----- bottomCells title ' + cell.config.data.t)
+            })
                 cellRelate.bottomStitchSectors(relativeSector.cells, relativeSector.data, cells, data)
             },
             _removeSector: function(sector) {

@@ -60,9 +60,9 @@ px.import({
                 var cells = this._addCellsToSector(this.listingDataInView, sectorCurrent, 0)
 
                 this.addTopSector(this.listingDataTop, sectorCurrent)
-
                 this.addBottomSector(this.listingDataBottom, sectorCurrent)
                 this.addRightSector(this.listingDataRight, sectorCurrent)
+
                 this.addTopRightSector(this.listingDataTopRight, sectorCurrent)
                 this.addBottomRightSector(this.listingDataBottomRight, sectorCurrent)
 
@@ -131,14 +131,6 @@ px.import({
                         })
                     }
 
-                    cell.container.on("onResize",function(w,h){
-                        console.log(' ----------------------------------------------------------resizing ')
-                    })
-
-                    cell.container.on("onSize",function(w,h){
-                        console.log(' ----------------------------------------------------------resizing ')
-                    })
-
                 }, function (cells) {
                     // nothing to do post tile rendering
                 })
@@ -164,8 +156,8 @@ px.import({
                 r.top = sector
 
                 var cells = this._addCellsToSector(data, sector)
-                cellRelate.bottomStitchSectors(cells, data, r.cells, r.data)
                 cellRelate.sideStitchSectors(t.cells, cells)
+                cellRelate.bottomStitchSectors(cells, data, r.cells, r.data)
             },
             addTopLeftSector: function (data, relativeSector) {
 
@@ -194,18 +186,14 @@ px.import({
 
                 var cells = this._addCellsToSector(data, sector)
 
-                cellRelate.bottomStitchSectors(r.cells, r.data, cells, data)
                 cellRelate.sideStitchSectors(b.cells, cells)
+                cellRelate.bottomStitchSectors(r.cells, r.data, cells, data)
             },
             // Adds a sector below the current sector and populates it with cells containing the listing data
             addBottomSector: function (data, relativeSector) {
 
                 var sector = this.sectors.extendDown(relativeSector)
                 var cells = this._addCellsToSector(data, sector)
-            
-            cells.forEach(function(cell){
-                console.log('------MRS----- bottomCells title ' + cell.config.data.t)
-            })
                 cellRelate.bottomStitchSectors(relativeSector.cells, relativeSector.data, cells, data)
             },
             _removeSector: function(sector) {
@@ -229,10 +217,16 @@ px.import({
                     sector.left.right = null
                     sector.left = null
                 }
+                // sector.cells.forEach(function(cell){
+                //     cell.image.removeAll()
+                //     cell.image.remove()
+                //     cell.container.remove()
+                // })
                 sector.container.removeAll()
                 sector.container.remove()
             },
             removeTopSector: function(relativeSector) {
+                console.log('--------- MRS ---   removing top sector ---' + relativeSector.top)
                 // if a sector exists to the top - then remove it from the scene and de-reference
                 if (relativeSector.top != null) {
                     this._removeSector(relativeSector.top)

@@ -24,7 +24,7 @@ px.import({
                     cell = currentCell
 
                 prevRowTracker.forEach(function(prevCell){
-                    if (prevCell.config.bottomCell == null && (
+                    if (prevCell.config.bottomCell == null && (     // not already set
                             prevCell.config.data.s == startTime || 
                             (prevCell.config.data.s > startTime && prevCell.config.data.s < endTime) ||
                             (prevCell.config.data.o < 0 && cell.config.data.o < 0) ||
@@ -35,10 +35,10 @@ px.import({
 
                                 prevCell.config.bottomCell = cell
                     }
-                    if (cell.config.topCell == null && (
+                    if (cell.config.topCell == null && (            // not already set
                             startTime == prevCell.config.data.s ||
                             (startTime > prevCell.config.data.s && startTime < prevCell.config.data.e) ||
-                            (cell.config.data.o < 0 && prevCell.config.data.e <= endTime))) {
+                            (cell.config.data.o < 0) )) {          // if the current cell is the first in-window     
                         
                                 cell.config.topCell = prevCell
                     }
@@ -150,6 +150,7 @@ px.import({
                             
                             t.topBottomMatch(prevRowTracker,currentCell)
 
+                            // if the top cell is still null, then use the top cell of the previous cell instead
                             if (currentCell.config.topCell == null && currentCell.config.prevCell != null)
                                 currentCell.config.topCell = currentCell.config.prevCell.config.topCell
                         } 
@@ -180,11 +181,23 @@ px.import({
                     data = [topData[topData.length - 1], bottomData[0]]
 
                 this._proximitySearchTopBottom(bottomRow.concat(topRow), data)
+
+                bottomRow.forEach(function(cell){
+                    if (cell.config.bottomCell == null) {
+                        if (cell.config.prevCell != null && cell.config.prevCell.config.bottomCell != null) {
+                            var bottomCell = cell.config.prevCell.config.bottomCell
+                            if (bottomCell.config.data.placeholder)
+                                bottomCell = bottomCell.config.prevCell
+                            cell.config.bottomCell = cell.config.prevCell.config.bottomCell
+                        }
+                    }
+                })
             },
             // de-reference the top most row of the sector below the cells passed in
             bottomUnStitchSector: function (cells) {
 
                 var bottomRow = this._getBottomRow(cells)
+
                 bottomRow.forEach(function (cell) {
                     if (cell.config.bottomCell != null)
                         cell.config.bottomCell.config.topCell = null    // first deference the bottom cell from pointing to this cell
@@ -243,10 +256,14 @@ px.import({
                     leftCell.config.nextCell = rightColumn[i]
                     rightColumn[i].config.prevCell = leftCell
 
-                    // create top/bottom relationships for the right column if they weren't previously created
+                    // create top relationships for the right column if they weren't previously created - perhaps because
+                    // the top cell is in the previous sector
                     if (rightColumn[i].config.topCell == null && i-1 >= 0) {
                         rightColumn[i].config.topCell = leftColumn[i-1] 
                     }
+
+                    // create bottom relationships for the right column if they weren't previously created - perhaps because
+                    // the bottom cell is in the previous sector
                     if (rightColumn[i].config.bottomCell == null && i+1 < rightColumn.length) {
 
                         var bottomCell = leftColumn[i+1]

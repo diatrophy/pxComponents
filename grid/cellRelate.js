@@ -17,7 +17,7 @@ px.import({
         return {
             // logic for setting the above and below cell. top/bottom cells are not complementary
             // as indicated by the diagram in the header documentation
-            topBottomMatch : function(prevRowTracker,currentCell){
+            _topBottomMatch : function(prevRowTracker,currentCell){
 
                 var startTime = currentCell.config.data.s,
                     endTime = currentCell.config.data.e,
@@ -110,7 +110,7 @@ px.import({
                         prevCell = currentCell
 
                         if (prevRowTracker != null) {
-                            t.topBottomMatch(prevRowTracker,currentCell)
+                            t._topBottomMatch(prevRowTracker,currentCell)
                         } 
 
                         if (rowIndex == listingDataInView.length - 1)
@@ -148,7 +148,7 @@ px.import({
 
                         if (prevRowTracker != null) {
                             
-                            t.topBottomMatch(prevRowTracker,currentCell)
+                            t._topBottomMatch(prevRowTracker,currentCell)
 
                             // if the top cell is still null, then use the top cell of the previous cell instead
                             if (currentCell.config.topCell == null && currentCell.config.prevCell != null)
@@ -182,6 +182,8 @@ px.import({
 
                 this._proximitySearchTopBottom(bottomRow.concat(topRow), data)
 
+                // loop through the bottom row (of the top cells) to figure out if any of the cells are missing `bottomCell`
+                // if so, use the bottom cell of the prevCell
                 bottomRow.forEach(function(cell){
                     if (cell.config.bottomCell == null) {
                         if (cell.config.prevCell != null && cell.config.prevCell.config.bottomCell != null) {
@@ -247,6 +249,7 @@ px.import({
                 })
             },
             // relates 2 adjoining columns
+            // alos has logic to handle overlapped cells
             _stitchColumns: function(leftColumn,rightColumn){
 
                 // loop through the left column and create relation to the right column
@@ -259,18 +262,40 @@ px.import({
                     // create top relationships for the right column if they weren't previously created - perhaps because
                     // the top cell is in the previous sector
                     if (rightColumn[i].config.topCell == null && i-1 >= 0) {
-                        rightColumn[i].config.topCell = leftColumn[i-1] 
+
+                        var topCell = leftColumn[i-1] 
+                        // use the prev cell if placeholder
+                        while (topCell.config.data.placeholder)
+                            topCell = topCell.config.prevCell
+
+                        rightColumn[i].config.topCell = topCell 
+
+                        // loop through the cells next to the right cell and if they are missing 
+                        // a top cell, use the cell top of the left cell
+                        var matched = true
+                        var nextRightCell = rightColumn[i].config.nextCell
+                        while(matched && nextRightCell != null) {
+                            if (nextRightCell.config.topCell == null) {
+                                nextRightCell.config.topCell = topCell
+                                nextRightCell = nextRightCell.config.nextCell
+                            } else     
+                                matched = false
+                        }
                     }
 
-                    // create bottom relationships for the right column if they weren't previously created - perhaps because
-                    // the bottom cell is in the previous sector
+                    // check if the right cell is missing a bottomCell, if so, then use the cell below the 
+                    // left cell.
                     if (rightColumn[i].config.bottomCell == null && i+1 < rightColumn.length) {
 
                         var bottomCell = leftColumn[i+1]
-                        if (bottomCell.config.data.placeholder)
+                        // use the previous cell if placeholder
+                        while (bottomCell.config.data.placeholder)
                             bottomCell = bottomCell.config.prevCell
 
                         rightColumn[i].config.bottomCell = bottomCell
+
+                        // loop through the cells next to the right cell and if they are missing 
+                        // a bottom cell, use the cell below the left cell
                         var matched = true
                         var nextRightCell = rightColumn[i].config.nextCell
                         while(matched && nextRightCell != null) {

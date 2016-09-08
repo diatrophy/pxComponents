@@ -35,7 +35,14 @@ px.import({
                 else {
 
                     if (uiImage.config != null) {
-                        var image = scene.create(uiImage.config)
+                        var image;
+                        //console.log(">>>> uiImage.image is "+uiImage.image);
+                        if( uiImage.image === undefined || uiImage.image == null)
+                          image = scene.create(uiImage.config)
+                        else {
+                          image = uiImage.image;
+                          image.a = 1;
+                        }
 
                         return image.ready.then(function (image) {
                             // console.log('image is loaded')
@@ -81,43 +88,59 @@ px.import({
 
                 // first create the container, NOTE - this creates an 'object' type pxscene object
                 // so it will not be visible. It is merely a container
-                var container = scene.create(uiImage.config)
+                var container;
+                var image;
+                //console.log(">>>>> _renderWithEffects container is "+uiImage.container);
+                if( uiImage.container === undefined || uiImage.container == null) {
+                  container = scene.create(uiImage.config)
+                  uiImage['container'] = container
+                  preEffects.forEach(applyEffectFunction)
+                }
+                else {
+                  container = uiImage.container;
+                  container.moveToFront();
+                  container.a = 1;
+                }
 
-                uiImage['container'] = container
-
-                preEffects.forEach(applyEffectFunction)
-
+                
+                //console.log(">>>>> _renderWithEffects image is "+uiImage.image);
+                if( uiImage.image === undefined || uiImage.image == null ) {
                 // then create the image, with the container above as parent
-                var imageConfig = {t:'image',url:uiImage.config.url,parent:container}
-                // if the image is a rectangle then use the original config
-                if (uiImage.originalT == 'rect'){
-                    imageConfig.w = uiImage.config.w
-                    imageConfig.h = uiImage.config.h
-                    imageConfig.t = 'rect'
-                    imageConfig.parent = container
-                    imageConfig.fillColor = uiImage.config.fillColor
-                    imageConfig.lineColor = uiImage.config.lineColor
-                    imageConfig.lineWidth = uiImage.config.lineWidth
+                  var imageConfig = {t:'image',url:uiImage.config.url,parent:container}
+                  // if the image is a rectangle then use the original config
+                  if (uiImage.originalT == 'rect'){
+                      imageConfig.w = uiImage.config.w
+                      imageConfig.h = uiImage.config.h
+                      imageConfig.t = 'rect'
+                      imageConfig.parent = container
+                      imageConfig.fillColor = uiImage.config.fillColor
+                      imageConfig.lineColor = uiImage.config.lineColor
+                      imageConfig.lineWidth = uiImage.config.lineWidth
+                  }
+
+                  var defaultImageConfig = {t:'image',url:defaultUrl,parent:container}
+
+                  if (uiImage.config.w && uiImage.config.h) {
+                      imageConfig.w = uiImage.config.w
+                      imageConfig.h = uiImage.config.h
+                      defaultImageConfig.w = uiImage.config.w
+                      defaultImageConfig.h = uiImage.config.h
+                  }
+                  if (uiImage.config.stretchX && uiImage.config.stretchY) {
+                      imageConfig.stretchX = uiImage.config.stretchX
+                      imageConfig.stretchY = uiImage.config.stretchY
+                      defaultImageConfig.stretchX = uiImage.config.stretchX
+                      defaultImageConfig.stretchY = uiImage.config.stretchY
+                  }
+            
+                  image = scene.create(imageConfig)
+                  postEffects.forEach(applyEffectFunction)
+                } else {
+                  image = uiImage.image;
+                  image.a = 1;
                 }
-
-                var defaultImageConfig = {t:'image',url:defaultUrl,parent:container}
-
-                if (uiImage.config.w && uiImage.config.h) {
-                    imageConfig.w = uiImage.config.w
-                    imageConfig.h = uiImage.config.h
-                    defaultImageConfig.w = uiImage.config.w
-                    defaultImageConfig.h = uiImage.config.h
-                }
-                if (uiImage.config.stretchX && uiImage.config.stretchY) {
-                    imageConfig.stretchX = uiImage.config.stretchX
-                    imageConfig.stretchY = uiImage.config.stretchY
-                    defaultImageConfig.stretchX = uiImage.config.stretchX
-                    defaultImageConfig.stretchY = uiImage.config.stretchY
-                }
-
-                var image = scene.create(imageConfig)
-
-                postEffects.forEach(applyEffectFunction)
+                
+                
 
                 // when the image is loaded call all the callbacks that may have been added by the 
                 // individual effect function before invoking the final callback defined by the Callee

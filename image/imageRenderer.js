@@ -90,7 +90,7 @@ px.import({
                 // so it will not be visible. It is merely a container
                 var container;
                 var image;
-                console.log(">>>>> _renderWithEffects container is "+uiImage.container);
+                //console.log(">>>>> _renderWithEffects container is "+uiImage.container);
                 if( uiImage.container === undefined || uiImage.container == null) {
                   container = scene.create(uiImage.config)
                   uiImage['container'] = container
@@ -103,7 +103,7 @@ px.import({
                 }
 
                 
-                console.log(">>>>> _renderWithEffects image is "+uiImage.image);
+                //console.log(">>>>> _renderWithEffects image is "+uiImage.image);
                 if( uiImage.image === undefined || uiImage.image == null ) {
                 // then create the image, with the container above as parent
                   var imageConfig = {t:'image',url:uiImage.config.url,parent:container}

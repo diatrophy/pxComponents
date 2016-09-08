@@ -50,8 +50,8 @@ px.import({
                                 c.y = (math.randomInt(0,1)==0)?c.parent.h-4000:c.parent.h+2000;
                                 c.sx = 2;
                                 c.sy = 2;
-                                console.log("c x = "+c.x);
-                                console.log("c y = "+c.y);
+                                //console.log("c x = "+c.x);
+                                //console.log("c y = "+c.y);
                             })
                         }
                     }

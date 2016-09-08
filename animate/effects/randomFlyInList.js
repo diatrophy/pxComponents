@@ -2,12 +2,14 @@
 
 px.import({
     randomFlyIn : 'randomFlyIn.js',    
-    fadeout     : 'fadeout.js'
+    fadeout     : 'fadeout.js',
+    math:'../../math.js'
 }).then(function importsAreReady(imports) {
 
     var imageRenderer = imports.imageRenderer,
         randomFlyIn = imports.randomFlyIn,
-        fadeout = imports.fadeout
+        fadeout = imports.fadeout, 
+        math = imports.math()
 
     module.exports = function(uiImageList,config,scene,callback) {
 
@@ -38,12 +40,18 @@ px.import({
                         // part of some cleanup function
 
                         // get rid of the oldest image on the screen by fade out
+                        // If we are looping, just hide the image so we don't have 
+                        // to recreate a new one the next time we loop through to show it
                         if (animateStack.length > config.maxImagesOnScreen - 1) {
                             var container = animateStack.shift()
                             fadeout(container,scene,function(c){
-                                c.remove();
-                                console.log(">>>>> setting c to null");
-                                c = null;
+                                c.a = 0;
+                                c.x = (math.randomInt(0,1)==0)?-1000:c.parent.w+2000;
+                                c.y = (math.randomInt(0,1)==0)?c.parent.h-4000:c.parent.h+2000;
+                                c.sx = 2;
+                                c.sy = 2;
+                                console.log("c x = "+c.x);
+                                console.log("c y = "+c.y);
                             })
                         }
                     }

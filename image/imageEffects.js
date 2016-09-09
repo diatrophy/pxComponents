@@ -15,7 +15,7 @@ module.exports = function() {
       return this
     },
     // adds a polaroid effect to the image
-    polaroid   : function(w) {
+    polaroid   : function(w, captions) {
 
       // declare function that calculate polaroid borders
 
@@ -39,6 +39,7 @@ module.exports = function() {
         sidePadding :sidePadding,
         topPadding  : calculateTopPadding(sidePadding),
         bottomPadding : sidePadding * 4,
+        captions : captions,
         // updates the width of the passed in polaroid param
         setW : function(w,p) {
           p.w   = w

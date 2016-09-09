@@ -17,7 +17,14 @@ module.exports = function (scene, uiImage, callbackList) {
     var effects = uiImage.effects.effects,
         sidePadding = effects['polaroid'].sidePadding,
         topPadding = effects['polaroid'].topPadding,
-        bottomPadding = effects['polaroid'].bottomPadding
+        bottomPadding = effects['polaroid'].bottomPadding,
+        captions = effects['polaroid'].captions
+        
+        
+    var captionFont;
+    var caption;
+    if( captions !== undefined && captions == true) 
+      captionFont = scene.create({t:"fontResource", url:"http://pxscene.org/examples/px-reference/fonts/DancingScript-Regular.ttf"});
 
     // create a rectangle to simulate a polaroid
     uiImage["polaroid"] = scene.create({
@@ -47,6 +54,27 @@ module.exports = function (scene, uiImage, callbackList) {
         w: uiImage.container.w - (sidePadding * 2)
     })
     uiImage['cropper'] = cropper
+    
+    if( captions !== undefined && captions == true) {
+      caption = scene.create({
+          t: "textBox",
+          parent: uiImage['polaroid'],
+          clip: true,
+          a: 1,
+          y: effects['polaroid'].h - bottomPadding +5,
+          x: sidePadding,
+          h: bottomPadding - 20,
+          w: uiImage.container.w - (sidePadding * 2),
+          text:uiImage.config.caption,
+          textColor:0x000000FF,
+          alignHorizontal:scene.alignHorizontal.CENTER,
+          font:captionFont,
+          pixelSize:22,
+          wordWrap:true,
+          truncation:scene.truncation.TRUNCATE_AT_WORD,
+          ellipsis:true
+      })
+    }
 
     // register a callback to re-size the image after the image resource has been downloaded
     // and available / rendered

@@ -21,6 +21,10 @@ module.exports = function() {
         },
         max          : function(v1,v2) {
             return (v1 > v2)?v1:v2;
+        },
+        // http://www.hnldesign.nl/work/code/javascript-limit-integer-min-max/
+        valBetween   : function(v, min, max) {
+            return (Math.min(max, Math.max(min, v)));
         }
     }
 }

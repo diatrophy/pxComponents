@@ -47,7 +47,8 @@ px.import({
                         return image.ready.then(function (image) {
                             // console.log('image is loaded')
                             uiImage['image'] = image
-                            callback(uiImage)
+                            if (callback != null)
+                                callback(uiImage)
                         })
                     } else {
                         console.log('image with missing config')
@@ -71,7 +72,8 @@ px.import({
                     for (var k = 0; k < uiImageList.length;k++) {
                         imgList.push(p[uiImageList[k].config.url])
                     }
-                    finalCallback(imgList)
+                    if (finalCallback != null)
+                        finalCallback(imgList)
                 })
             },
             // renders an image with effects

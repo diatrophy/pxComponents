@@ -52,7 +52,7 @@ px.import({
                 return this
             },
             render: function (callback) {
-               
+
                 var c = this.container
 
                 var sectorCurrent = this.sectors.init(c, borderWidth, c.h)
@@ -62,7 +62,6 @@ px.import({
                 this.addTopSector(this.listingDataTop, sectorCurrent)
                 this.addBottomSector(this.listingDataBottom, sectorCurrent)
                 this.addRightSector(this.listingDataRight, sectorCurrent)
-
                 this.addTopRightSector(this.listingDataTopRight, sectorCurrent)
                 this.addBottomRightSector(this.listingDataBottomRight, sectorCurrent)
 
@@ -130,9 +129,6 @@ px.import({
                                 tileSelected(c)                 // if this is the initial cell, it is selected
                         })
                     }
-
-                }, function (cells) {
-                    // nothing to do post tile rendering
                 })
 
                 return cells

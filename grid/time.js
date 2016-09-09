@@ -190,8 +190,6 @@ px.import({
                         t.currentCell = timeTile
                     }
 
-                }, function () {
-                    // do nothing post rendering
                 })
 
                 return {container: sector, model: timeDataModel, cells: timeCells}

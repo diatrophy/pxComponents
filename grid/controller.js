@@ -56,69 +56,51 @@ px.import({
                 return cell.config.leftColumn
             },
             loadNeighbor: null,
-            rightScrollOffset: function (targetCell, timeWidth, containerWidth, callback) {
-
-                var pageScroll,
-                    xOffset = 0
+            // given a targetCell and container width, this function will determine how much to scroll and 
+            // invoke the callback function
+            _rightScrollOffset: function (targetCell, timeWidth, callback,getCellViewPortX,containerWidth) {
 
                 if (targetCell != null) {
 
-                    // get the position of the target cell
-                    var targetContainerWidth = targetCell.container.w,
-                        x = this.getCellViewPortX(targetCell)
+                    var pageScroll, xOffset = 0,
+                        x = getCellViewPortX(targetCell),   // get the x position of the target cell
+                        defer = x >= containerWidth              // whether the target cell is out of view and should be ignored for now
 
-                    var defer = false
-
-                    if (x >= containerWidth) {
-
-                        // if the target cell is out of the viewable screen then offset by the time interval
-                        // also defer making the target cell the current cell because it is not viewable yet
-
-                        pageScroll = 'right'
+                    // if the target cell is out of the viewable screen or,
+                    // if the target cell is partially visible / obscured then offset by the time interval
+                    if (x >= containerWidth ||
+                        ((x < containerWidth) && (x + targetCell.container.w > containerWidth))) {
                         xOffset = -1 * timeWidth
-                        defer = true
-
-                    } else if ((x < containerWidth) && (x + targetContainerWidth > containerWidth)) {
-
-                        // if the target cell is partially obscured then offset by the time interval
-
                         pageScroll = 'right'
-                        xOffset = -1 * timeWidth
                     }
 
                     callback(pageScroll, xOffset, defer)
                 }
             },
-            leftScrollOffset: function (targetCell, timeWidth, callback) {
+            // given a targetCell and container width, this function will determine how much to scroll and 
+            // invoke the callback function
+            _leftScrollOffset: function (targetCell, timeWidth, callback,getCellViewPortX) {
 
-                var pageScroll, xOffset = 0
+                if (targetCell != null) {
 
-                if (targetCell != null) {//} && gridX != 0) {
+                    var pageScroll, xOffset = 0,
+                        // get the position of the grid container
+                        gridX = targetCell.container.parent.parent.x,
+                        // get the position of the target cell and determine if it is at the left most part of the
+                        // screen or if it is partially obscured by the scrolling list
+                        targetCellX1 = getCellViewPortX(targetCell),
+                        targetCellX2 = targetCellX1 + targetCell.container.w,
+                        defer = targetCellX2 < 0   // whether the target cell is out of view and should be ignored for now
 
-                    var gridX = targetCell.container.parent.parent.x
-
-                    // get the position of the target cell and determine if it is at the left most part of the
-                    // screen or if it is partially obscured by the scrolling list
-                    var x = this.getCellViewPortX(targetCell)
-
-                    var targetCellX2 = x + targetCell.container.w
-
-                    var defer = false
-
-                    if (targetCellX2 < 0) {
-
-                        // if this cell is completely obscured
-                        defer = true
-                        pageScroll = 'left'
-                        xOffset = timeWidth
-
-                    } else if (x < 0 && gridX != 0) {
-
+                    // if the target cell is out of the viewable screen then offset by the time interval or,
+                    // if the target cell is partially obscured and the grid is not in its starting position
+                    if (targetCellX2 < 0 ||
+                        (targetCellX1 < 0 && gridX != 0)) {
                         pageScroll = 'left'
                         xOffset = timeWidth
                     }
-                    callback(pageScroll, xOffset, defer)
 
+                    callback(pageScroll, xOffset, defer)
                 }
             },
             registerLoadNeigborFunction: function (func) {
@@ -136,35 +118,36 @@ px.import({
             // along with determining the target cell (if any)
             keyCodeAction: function (e, currentCell, timeWidth, callback) {
 
-                var targetCell, pageScroll, yOffset = 0, uiScrollingListYOffset = 0
+                var targetCell, pageScroll, yOffset = 0, uiScrollingListYOffset = 0, placeHolderSectorLoad = null
 
                 // sometimes, when the arrow is pressed down, pxscene can cause a speed-scroll, and it
                 // possible that the target cell is currently loading asynchronously, hence the need to check if the
                 // target cell is null before invoking any function that may result in an 'undefined' exception
 
-                if (e.keyCode == 37) {                              // LEFT ARROW
+                if (e.keyCode == 37 || e.keyCode == 39) {                              // LEFT or RIGHT ARROW
+
+                    var offsetFunction = this._leftScrollOffset
 
                     targetCell = currentCell.config.prevCell
-                    if (targetCell == null)
+
+                    if (e.keyCode == 39) {
+                        offsetFunction = this._rightScrollOffset
+                        targetCell = currentCell.config.nextCell
+                    }
+
+                    // default to current cell if the target cell is null or if placeholder
+                    if (targetCell == null || targetCell.config.data.placeholder) {
+                        placeHolderSectorLoad = targetCell
                         targetCell = currentCell
+                    }
 
-                    this.leftScrollOffset(targetCell, timeWidth, function (scroll, offsetX, defer) {
+                    offsetFunction(targetCell, timeWidth, function (scroll, offsetX, defer) {
                         if (defer)
                             targetCell = currentCell
-                        callback(targetCell, null, scroll, offsetX, 0, 0)
-                    })
+                        callback(targetCell, null, scroll, offsetX, 0, 0, placeHolderSectorLoad)
+                    },this.getCellViewPortX,this.containerGrid.w)
 
-                } else if (e.keyCode == 39) {                       // RIGHT ARROW
-
-                    targetCell = currentCell.config.nextCell
-
-                    this.rightScrollOffset(targetCell, timeWidth, this.containerGrid.w, function (scroll, offsetX, defer) {
-                        if (defer)
-                            targetCell = currentCell
-                        callback(targetCell, null, scroll, offsetX, 0, 0)
-                    })
-
-                } else if (e.keyCode == 38) {                       // TOP ARROW
+                }  else if (e.keyCode == 38) {                       // TOP ARROW
 
                     targetCell = this._getTopCell()
 
@@ -338,8 +321,8 @@ px.import({
             // additionally if the data in the next sector (of motion ex. top of next if movement is up arrow)
             // is empty then the second callback is invoked - that triggers fetching off and loading data
             sectorChange: function (currentSector, currentScrollingSector, currentTimeSector,
-                                    prevCell, targetCell, overrideDirection, sectorChangeCallback, loadDataCallback,
-                                    unloadActionCallback) {
+                prevCell, targetCell, overrideDirection, sectorChangeCallback, loadDataCallback,
+                unloadActionCallback) {
 
                 var nextSector, nextScrollingSector, nextTimeSector, loadNeighborDirection,
                     unloadScrollingSector,
@@ -367,6 +350,19 @@ px.import({
                         if (nextSector.top == null)
                             loadNeighborDirection = 'top'
 
+                    } else if (targetCell.config.data.placeholder) {
+                        if (prevCell.config.nextCell.id == targetCell.id) {
+                            nextSector = currentSector.right
+                            nextTimeSector = currentTimeSector.right
+                            if (nextSector.right == null)
+                                loadNeighborDirection = 'right'
+                        } else if (prevCell.config.prevCell.id == targetCell.id) {
+                            nextSector = currentSector.left
+                            nextTimeSector = currentTimeSector.left
+                            if (nextSector.left == null)
+                                loadNeighborDirection = 'left'
+                        }
+
                     } else if (previous.leftColumn && target.rightColumn) { // we've crossed into the left sector
 
                         nextSector = currentSector.left
@@ -387,7 +383,7 @@ px.import({
                         sectorChangeCallback(nextSector, nextScrollingSector, nextTimeSector)
                         if (loadNeighborDirection != null) {
                             loadDataCallback(loadNeighborDirection, nextSector, nextScrollingSector, nextTimeSector)
-                            unloadActionCallback(currentScrollingSector,currentSector,loadNeighborDirection)
+                            unloadActionCallback(currentScrollingSector, currentSector, loadNeighborDirection)
                         }
                     }
                 }
@@ -395,8 +391,9 @@ px.import({
             ,
             // this function handles the actions to undertake if the sector has changed
             determineSectorChangeAndLoadNeighboringData: function (cSector, currentScrollingSector, currentTimeSector,
-                                                                   prevCell, targetCell, pageScroll, horizontalScroll,
-                                                                   uiGrid, uiScrollingList, uiGridTime, overrideDirection) {
+                prevCell, targetCell, pageScroll, horizontalScroll,
+                uiGrid, uiScrollingList, uiGridTime, overrideDirection) {
+
                 var t = this
 
                 // callback function indicating that the sector has changed and this warrants
@@ -428,17 +425,17 @@ px.import({
                     t.loadNeighbor(t.currentRow, t.currentSectorRow, loadNeighborDirection, function (data) {
 
                         if (loadNeighborDirection == "top") {
+                            uiScrollingList.addTopSector(nextScrollingSector)
                             uiGrid.addTopSector(data.top, nextSector)
                             uiGrid.addTopRightSector(data.topRight, nextSector)
                             if (nextSector.left != null) {
                                 uiGrid.addTopLeftSector(data.topLeft, nextSector)
                             }
-                            uiScrollingList.addTopSector(nextScrollingSector)
                             t.currentSectorRow = 4
                         } else if (loadNeighborDirection == "bottom") {
+                            uiScrollingList.addBottomSector(nextScrollingSector)
                             uiGrid.addBottomSector(data.bottom, nextSector)
                             uiGrid.addBottomRightSector(data.bottomRight, nextSector)
-                            uiScrollingList.addBottomSector(nextScrollingSector)
                             t.currentSectorRow = 0
                         } else if (loadNeighborDirection == "right") {
                             uiGrid.addRightSector(data.right, nextSector)
@@ -449,7 +446,7 @@ px.import({
                 }
 
                 // function for destroying sectors no longer visible to the viewer
-                var unloadActionCallback = function(currentScrollingSector,currentSector,loadNeighborDirection){
+                var unloadActionCallback = function (currentScrollingSector, currentSector, loadNeighborDirection) {
 
                     if (loadNeighborDirection == "top") {
                         uiScrollingList.removeBottomSector(currentScrollingSector.bottom)
@@ -474,7 +471,7 @@ px.import({
                 if (timeAnimateConfig != null) {
                     this.uiGridTime.timeContainer
                         .animateTo(timeAnimateConfig, animationSpeed,
-                            scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
+                        scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
                         .then(function (obj) {
                             // TODO update the highlight on the timebar
                         })
@@ -489,14 +486,14 @@ px.import({
                     // animate the container grid
                     t.containerGrid.animateTo(gridAnimateConfig, animationSpeed, scene.animation.TWEEN_STOP,
                         scene.animation.OPTION_LOOP, 1).then(function () {
-                        callback()
-                    })
+                            callback()
+                        })
                 }
             },
             // as the grid scroll left or right, the title in each cell can get obscured. This function
             // re-adjusts the title inside the cells, so that they scroll in the opposite direction
             // until they are visible.
-            handleTitleReadjustment: function (uiGrid, containerGridXPosition, scrollXOffset) {
+            handleTitleReadjustment: function (uiGrid, containerGridXPosition, scrollXOffset, scrollX) {
 
                 if (scrollXOffset == 0)
                     return      // no point proceeding further as grid did not scroll left of right
@@ -511,7 +508,7 @@ px.import({
 
                         // nested loop through all cells in the reverse order, 
                         // break when first negative cell encountered
-                        rows.forEach(function(row){
+                        rows.forEach(function (row) {
 
                             // calculate the cells X1 and X2
                             var cell = row.cell,
@@ -523,22 +520,22 @@ px.import({
                             if (off > -1 && off < 0) off = 0
                             if (offX2 < 1 && offX2 > 0) offX2 = 0
 
-                            if (off < 0 && offX2 > 0) {
+                            if (off < 0 && offX2 > 0 && scrollX != 0) {
 
                                 // if this is a partially obscured cell, then animate the title so that it is visible
                                 cell.title.animateTo({
-                                        x: Math.abs(off) + cell.title.y,
-                                        w: cell.container.w - Math.abs(off) - cell.title.y
-                                    },
+                                    x: Math.abs(off) + cell.title.y,
+                                    w: cell.container.w - Math.abs(off) - cell.title.y
+                                },
                                     animationSpeed, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
 
                             } else {
 
                                 // otherwise reset the title to its original position
                                 cell.title.animateTo({
-                                        x: cell.titleXPosition, // use the original position, as
-                                        w: cell.image.w - cell.title.y
-                                    },
+                                    x: cell.titleXPosition, // use the original position, as
+                                    w: cell.image.w - cell.title.y
+                                },
                                     animationSpeed, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
                             }
                         })
@@ -555,12 +552,12 @@ px.import({
 
                         // if there is no left sector - it is possible that scrolling occurred while in the current sector
                         var targetSector = sector.left
-                        if (targetSector != null) 
+                        if (targetSector != null)
                             sectors.push(targetSector)
-                    
+
                         // if there is no right sector - it is possible that scrolling occurred while in the current sector
                         targetSector = sector.right
-                        if (targetSector != null) 
+                        if (targetSector != null)
                             sectors.push(targetSector)
                     }
                     return sectors
@@ -576,17 +573,17 @@ px.import({
                     sectorsToAdjust = sectorsToAdjust.concat(getAdjustmentSectors(uiGrid.sectors.currentSector.top))
                 }
 
-                sectorsToAdjust.forEach(function(sector){
+                sectorsToAdjust.forEach(function (sector) {
                     adjustTitles(sector)
                 })
             }
             ,
             // registers various components with this controller, and also establishes what to do when keys are pressed
             register: function (containerGrid, uiGridSelector, uiScrollingList, uiGrid, uiGridTime, currentCell, scrollingListWidth,
-                                tileH, borderWidth, currentRow) {        // initialize the container with the key pressed hooks
+                tileH, borderWidth, currentRow) {        // initialize the container with the key pressed hooks
 
                 var scrollY = 0
-                var scrollX = 0
+                    scrollX = 0
 
                 this.tileH = tileH
 
@@ -614,10 +611,14 @@ px.import({
                         currentTimeSector = uiGridTime.currentSector
 
                     t.keyCodeAction(e, currentCell, uiGridTime.timeSectorWidth,
-                        function (targetCell, pageScroll, horizontalScroll, xOffset, yOffset, uiScrollingListYOffset, overrideDirection) {
+                        function (targetCell, pageScroll, horizontalScroll, xOffset, yOffset, uiScrollingListYOffset, overrideDirection,
+                            placeHolderSectorLoad) {
 
                             if (targetCell.loaded != true)
                                 return                                                  // short circuit if contents of cell not loaded
+
+                            // if (targetCell.config.data.placeholder)
+                            //     targetCell = currentCell
 
                             t.currentCell = targetCell                                  // remember current program
 
@@ -625,8 +626,13 @@ px.import({
 
                             uiGrid.tileSelected(targetCell, prevCell)                    // highlights the next cell
 
+                            var tCell = targetCell
+                            if (placeHolderSectorLoad != null) {
+                                tCell = placeHolderSectorLoad
+                            }
+
                             t.determineSectorChangeAndLoadNeighboringData(currentSector, currentScrollingSector, currentTimeSector,
-                                prevCell, targetCell, pageScroll, horizontalScroll, uiGrid, uiScrollingList, uiGridTime, overrideDirection)
+                                prevCell, tCell, pageScroll, horizontalScroll, uiGrid, uiScrollingList, uiGridTime, overrideDirection)
 
                             if (yOffset != null || yOffset != 0 || xOffset != null || xOffset != 0) {
 
@@ -640,19 +646,17 @@ px.import({
                                 var gridAnimateConfig, timeAnimateConfig
                                 if (horizontalScroll == 'right' || horizontalScroll == 'left') {
                                     // left /right scroll does not require the channel list to move
-                                    timeAnimateConfig = gridAnimateConfig = {x: scrollX}
+                                    timeAnimateConfig = gridAnimateConfig = { x: scrollX }
                                 }
                                 if (pageScroll == 'up' || pageScroll == 'down') {
                                     // top / down does not require the time-line to move
                                     uiScrollingList.update(uiScrollingListYOffset)
-                                    gridAnimateConfig = {y: scrollY}
+                                    gridAnimateConfig = { y: scrollY }
                                 }
 
                                 uiGridSelector.update(targetCell)
 
-                                var containerGridXPosition = t.containerGrid.x
-
-                                t.handleTitleReadjustment(uiGrid, containerGridXPosition, xOffset)
+                                t.handleTitleReadjustment(uiGrid, t.containerGrid.x, xOffset, scrollX)
                                 t.handleGridAnimate(gridAnimateConfig)
                                 t.handleTimeBarAnimate(timeAnimateConfig)
                                 uiGridTime.update(targetCell.config.data.s)

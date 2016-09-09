@@ -52,7 +52,7 @@ px.import({
                 return this
             },
             render: function (callback) {
-               
+
                 var c = this.container
 
                 var sectorCurrent = this.sectors.init(c, borderWidth, c.h)
@@ -60,7 +60,6 @@ px.import({
                 var cells = this._addCellsToSector(this.listingDataInView, sectorCurrent, 0)
 
                 this.addTopSector(this.listingDataTop, sectorCurrent)
-
                 this.addBottomSector(this.listingDataBottom, sectorCurrent)
                 this.addRightSector(this.listingDataRight, sectorCurrent)
                 this.addTopRightSector(this.listingDataTopRight, sectorCurrent)
@@ -73,7 +72,11 @@ px.import({
 
                 // helper function to create each cell
                 var cellFunction = function (container, alpha, xOffset, yOffset, wid, tileH, cellData) {
+
+                    var id = "cell-" + Math.random()
+
                     var cell = image({
+                        id: id,
                         t: 'rect',
                         parent: container,
                         fillColor: transparentColor,
@@ -126,17 +129,6 @@ px.import({
                                 tileSelected(c)                 // if this is the initial cell, it is selected
                         })
                     }
-
-                    cell.container.on("onResize",function(w,h){
-                        console.log(' ----------------------------------------------------------resizing ')
-                    })
-
-                    cell.container.on("onSize",function(w,h){
-                        console.log(' ----------------------------------------------------------resizing ')
-                    })
-
-                }, function (cells) {
-                    // nothing to do post tile rendering
                 })
 
                 return cells
@@ -160,8 +152,8 @@ px.import({
                 r.top = sector
 
                 var cells = this._addCellsToSector(data, sector)
-                cellRelate.bottomStitchSectors(cells, data, r.cells, r.data)
                 cellRelate.sideStitchSectors(t.cells, cells)
+                cellRelate.bottomStitchSectors(cells, data, r.cells, r.data)
             },
             addTopLeftSector: function (data, relativeSector) {
 
@@ -190,8 +182,8 @@ px.import({
 
                 var cells = this._addCellsToSector(data, sector)
 
-                cellRelate.bottomStitchSectors(r.cells, r.data, cells, data)
                 cellRelate.sideStitchSectors(b.cells, cells)
+                cellRelate.bottomStitchSectors(r.cells, r.data, cells, data)
             },
             // Adds a sector below the current sector and populates it with cells containing the listing data
             addBottomSector: function (data, relativeSector) {
@@ -221,10 +213,16 @@ px.import({
                     sector.left.right = null
                     sector.left = null
                 }
+                // sector.cells.forEach(function(cell){
+                //     cell.image.removeAll()
+                //     cell.image.remove()
+                //     cell.container.remove()
+                // })
                 sector.container.removeAll()
                 sector.container.remove()
             },
             removeTopSector: function(relativeSector) {
+                console.log('--------- MRS ---   removing top sector ---' + relativeSector.top)
                 // if a sector exists to the top - then remove it from the scene and de-reference
                 if (relativeSector.top != null) {
                     this._removeSector(relativeSector.top)

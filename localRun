@@ -2,4 +2,5 @@
 # Requirements - http-server (can be installed via npm using:
 # npm -g http-server
 
-http-server -p 8090
+# http-server -p 8090 -a 127.0.0.1 -d false
+http-server -p 8090 -d false -c-1

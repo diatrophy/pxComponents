@@ -18,7 +18,6 @@ px.import({
             prevSelection : -1,
             preNavigateAction       : null,
             postNavigateAction      : null,
-            selectAction            : null,
             style                   : 0,
             config  : {
                 tiles : []

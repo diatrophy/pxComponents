@@ -36,13 +36,16 @@ px.import({
     image: '../image/image.js',
     imageEffects: '../image/imageEffects.js',
     math: '../math.js',
-    circularArray : '../util/circularArray.js'
+    circularArray : '../util/circularArray.js',
+    memoryPool : '../util/memoryPool.js'
 
 }).then(function importsAreReady(imports) {
 
     var image = imports.image,
         imageEffects = imports.imageEffects,
         CircularArray = imports.circularArray,
+        MemoryPool = imports.memoryPool,
+        memoryPool = new MemoryPool(),  // TODO - make global
         math = imports.math(),
         transparentColor = 0xffffff00,
         greyColor = 0x999999ff,
@@ -54,10 +57,21 @@ px.import({
             borderWidth = 1,
             cellsPerSector = 5
 
+        memoryPool.register('scrollingTile',function(){
+
+            return {
+                container: scene.create({
+                    a: 1,
+                    t: "rect",
+                    fillColor: transparentColor,
+                    clip: false
+                }),
+                cells:null
+            }
+        })
+
         return {
 
-            // pool of sectors for re-use
-            sectorPool : [],
             // initialize the scrolling list with -
             // container - to hold the scrolling list
             // items - **circular array*** of items in the scrolling list, data format can be any form (literal or hash map). The 
@@ -178,46 +192,30 @@ px.import({
                 var sector,
                     f = this.tileRenderFunction
 
-                // re-use a sector from the pool if available
-                if (this.sectorPool.length > 1) {
+                var sector = memoryPool.get('scrollingTile')
+                sector.container.y = sectorY    // position the scrolling list at the current cell
+                sector.container.parent = this.scrollingContainer
+                sector.container.w = this.scrollingContainer.w
+                sector.container.h = this.scrollingContainer.h
 
-                    sector = this.sectorPool.pop()
-                    sector.container.y = sectorY
+                if (sector.cells == null) {
 
-                    sector.cells.forEach(function(cell,i){
-                        cell.config.data = items[i]
-                        f(cell)
-                    })
+                    var cells = this._generateCells(items, sector.container, borderWidth, this.xOffset, this.itemW, this.tileHeight)
 
-                    // TODO - add logic to handle non circular arrays - in which case we would need to 
-                    // clear contents in a cell that was recycled so that there is no residual data in it
+                    sector['cells'] = cells
 
-                    return sector
-
-                } else {
-
-                    var sector = scene.create({
-                        a: 1,
-                        t: "rect",
-                        fillColor: transparentColor,
-                        y: sectorY,    // position the scrolling list at the current cell
-                        parent: this.scrollingContainer,
-                        w: this.scrollingContainer.w,
-                        h: this.scrollingContainer.h,
-                        clip: false
-                    });
-
-                    var cells = this._generateCells(items, sector, borderWidth, this.xOffset, this.itemW, this.tileHeight)
-
-                    sector[cells] = cells
-
-                    // Render the cells
                     imageRenderer.renderList(cells, function (itemTile) {
                         f(itemTile)                          // invoke the rendering function
                     })
 
-                    return { container: sector, cells: cells }
+                } else {
+                    sector.cells.forEach(function(cell,i){
+                        cell.config.data = items[i]
+                        f(cell)
+                    })
                 }
+                
+                return sector
             },
             _removeSector: function (sector) {
                 if (sector.top != null) {
@@ -228,8 +226,9 @@ px.import({
                     sector.bottom.top = null
                     sector.bottom = null
                 }
+
                 // mark and save the sector for reuse
-                this.sectorPool.push(sector)
+                memoryPool.recycle('scrollingTile',sector)
             },
             removeTopSector: function (relativeSector) {
                 // de reference the top sector and then update the top most cell index
@@ -270,7 +269,6 @@ px.import({
 
                 // return if a bottom sector is already present
                 if (relativeSector.bottom == null) {
-
                     var start = this.bottomCell,
                         end = this.bottomCell + cellsPerSector,
                         itemList = this.items.slice(start, end)
@@ -289,5 +287,5 @@ px.import({
 
 }).catch(function (err) {
     console.error("Error on scrolling list: ")
-    console.log(err)
+    console.log(err.stack)
 });

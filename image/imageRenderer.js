@@ -106,7 +106,7 @@ px.import({
                 
                 //console.log(">>>>> _renderWithEffects image is "+uiImage.image);
                 if( uiImage.image === undefined || uiImage.image == null ) {
-                // then create the image, with the container above as parent
+                  // then create the image, with the container above as parent
                   var imageConfig = {t:'image',url:uiImage.config.url,parent:container}
                   // if the image is a rectangle then use the original config
                   if (uiImage.originalT == 'rect'){
@@ -137,12 +137,11 @@ px.import({
                   image = scene.create(imageConfig)
                   postEffects.forEach(applyEffectFunction)
                 } else {
-                  image = uiImage.image;
-                  image.a = 1;
+                    image = uiImage.image;    // TODO - probably should updated the image based off the config (if the config has changed)
+                    image.a = 1;
+                    postEffects.forEach(applyEffectFunction)
                 }
                 
-                
-
                 // when the image is loaded call all the callbacks that may have been added by the 
                 // individual effect function before invoking the final callback defined by the Callee
                 return image.ready.then(function(image){

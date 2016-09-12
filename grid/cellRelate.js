@@ -10,7 +10,14 @@ px.import({
 }).then(function importsAreReady(imports) {
 
     var gridHelper = imports.gridHelper(),
-        logger = imports.logger()
+        logger = imports.logger(),
+        // map containining converse directions, for ease of processing
+        opps = {
+            'bottom':'top',
+            'top' : 'bottom',
+            'next' : 'prev',
+            'prev' : 'next'
+        }
 
     module.exports = function () {
 
@@ -247,6 +254,15 @@ px.import({
                         cell.config.nextCell.config.prevCell = null     // first de-reference the next cell from pointing to this cell
                     cell.config.nextCell = null                         // then remove the reference to the next cell
                 })
+            },
+            unrelate : function(cell){
+                
+                for (var key in opps) {
+                    if (cell.config[key+'Cell'] != null) {
+                        if (cell.config[key +'Cell'].config != null)
+                            cell.config[key +'Cell'].config[opps[key]+'Cell'] = null
+                    }
+                }
             },
             // relates 2 adjoining columns
             // alos has logic to handle overlapped cells

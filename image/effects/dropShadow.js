@@ -14,19 +14,21 @@ px.import({
         var effects = uiImage.effects.effects
 
         // add the shadow
-        var shadow = scene.create({
-                            t:"image9",
-                            url:effects['dropShadow'].url,
-                            parent:uiImage['container'],
-                            a:0,
-                            // x:constants.dropShadow.offset,y:constants.dropShadow.offset,
-                            // TODO - the following properties are image9 related and probably should
-                            // not be hard-coded as this is associated with the Image ie.
-                            // a different shadow image may have different inset(s)
-                            insetTop:48,insetBottom:48,insetLeft:48,insetRight:48
-                        })
+        if (uiImage["shadow"] == null) {
+            var shadow = scene.create({
+                                t:"image9",
+                                url:effects['dropShadow'].url,
+                                parent:uiImage['container'],
+                                a:0,
+                                // x:constants.dropShadow.offset,y:constants.dropShadow.offset,
+                                // TODO - the following properties are image9 related and probably should
+                                // not be hard-coded as this is associated with the Image ie.
+                                // a different shadow image may have different inset(s)
+                                insetTop:48,insetBottom:48,insetLeft:48,insetRight:48
+                            })
 
-        uiImage["shadow"] = shadow
+            uiImage["shadow"] = shadow
+        }
 
         // in this case we can only determine the Width/Height of the shadow
         // after it has been loaded, hence we add the callback to the list of 

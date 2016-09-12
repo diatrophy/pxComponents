@@ -20,33 +20,37 @@ module.exports = function (scene, uiImage, callbackList) {
         bottomPadding = effects['polaroid'].bottomPadding
 
     // create a rectangle to simulate a polaroid
-    uiImage["polaroid"] = scene.create({
-        t: "rect",
-        parent: uiImage['container'],
-        fillColor: 0xF8F8F8FF,
-        lineColor: 0xCCCCCC80,
-        a: 0,
-        lineWidth: 4,
-        w: effects['polaroid'].w,
-        h: effects['polaroid'].h
-    })
+    if (uiImage["polaroid"] == null) {
+        uiImage["polaroid"] = scene.create({
+            t: "rect",
+            parent: uiImage['container'],
+            fillColor: 0xF8F8F8FF,
+            lineColor: 0xCCCCCC80,
+            a: 0,
+            lineWidth: 4,
+            w: effects['polaroid'].w,
+            h: effects['polaroid'].h
+        })
+    }
 
     // update the container w/h to match that of the polaroid
     uiImage.container.w = uiImage['polaroid'].w
     uiImage.container.h = uiImage['polaroid'].h
 
     // create an rectangle object (with clip = true) that will crop the actual image
-    var cropper = scene.create({
-        t: "rect",
-        parent: uiImage['container'],
-        clip: true,
-        a: 1,
-        y: topPadding,
-        x: sidePadding,
-        h: uiImage.container.h - topPadding - bottomPadding,
-        w: uiImage.container.w - (sidePadding * 2)
-    })
-    uiImage['cropper'] = cropper
+    if (uiImage['cropper'] == null) {
+        var cropper = scene.create({
+            t: "rect",
+            parent: uiImage['container'],
+            clip: true,
+            a: 1,
+            y: topPadding,
+            x: sidePadding,
+            h: uiImage.container.h - topPadding - bottomPadding,
+            w: uiImage.container.w - (sidePadding * 2)
+        })
+        uiImage['cropper'] = cropper
+    }
 
     // register a callback to re-size the image after the image resource has been downloaded
     // and available / rendered

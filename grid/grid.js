@@ -10,19 +10,43 @@ px.import({
     sectors: 'sectors.js',
     cellRelate: 'cellRelate.js',
     gridHelper: 'gridHelper.js',
-    logger: '../logger.js'
+    logger: '../logger.js',
+    memoryPool : '../util/memoryPool.js'
+
 }).then(function importsAreReady(imports) {
 
     var image = imports.image,
         imageEffects = imports.imageEffects,
         cellRelate = imports.cellRelate(),
         gridHelper = imports.gridHelper(),
-        logger = imports.logger()
+        logger = imports.logger(),
+        MemoryPool = imports.memoryPool,
+        memoryPool = new MemoryPool()  // TODO - make global
 
-    var transparentColor = 0xffffff00
-    var greyColor = 0x999999ff
+    var transparentColor = 0xffffff00,
+        greyColor = 0x999999ff,
+        borderWidth = 1
 
-    var borderWidth = 1
+    memoryPool.register('cells', function (id) {
+
+        return image({
+                        id: id,
+                        t: 'rect',
+                        fillColor: transparentColor,
+                        clip:true
+                    })
+                        .addEffects(imageEffects()
+                            .border2(0, borderWidth, 0, borderWidth, greyColor)
+                        )
+
+    },200, function(cell){
+
+        cell.image.a = 0
+        cell.container.parent = null
+        cell.container.x = -20000
+        cellRelate.unrelate(cell)
+        cell.config = {}
+    })
 
     module.exports = function (scene) {
 
@@ -53,11 +77,9 @@ px.import({
             },
             render: function (callback) {
 
-                var c = this.container
-
-                var sectorCurrent = this.sectors.init(c, borderWidth, c.h)
-
-                var cells = this._addCellsToSector(this.listingDataInView, sectorCurrent, 0)
+                var c = this.container,
+                    sectorCurrent = this.sectors.init(c, borderWidth, c.h),
+                    cells = this._addCellsToSector(this.listingDataInView, sectorCurrent, 0)
 
                 this.addTopSector(this.listingDataTop, sectorCurrent)
                 this.addBottomSector(this.listingDataBottom, sectorCurrent)
@@ -75,26 +97,55 @@ px.import({
 
                     var id = "cell-" + Math.random()
 
-                    var cell = image({
-                        id: id,
-                        t: 'rect',
-                        parent: container,
-                        fillColor: transparentColor,
-                        a: alpha,
-                        x: xOffset,
-                        y: yOffset,
-                        w: wid,
-                        h: tileH,
-                        clip:true,
-                        data: cellData // store the cell data in the image config
-                    })
-                        .addEffects(imageEffects()
-                            .border2(0, borderWidth, 0, borderWidth, greyColor)
-                        )
+                    // var cell = memoryPool.get('cells')
+                 
+                    // if (cell == null) {
 
-                    // create a circular reference so that we can use it later
-                    cellData.cell = cell
+                    //     console.log('------------- COULD NOT RETRIEVE CELL FROM POOL -------------')
 
+                    // } else {
+                    
+                    //     // if this cell was already rendered then update additional vals on it otherwise just
+                    //     // update the config
+
+                    //     cell.config.parent = container
+                    //     cell.config.a = alpha
+                    //     cell.config.x = xOffset
+                    //     cell.config.y = yOffset
+                    //     cell.config.w = wid
+                    //     cell.config.h = tileH
+                    //     cell.config.data = cellData
+
+                    //     if (cell.image != null) {
+
+                    //         cell.container.parent = container
+                    //         cell.container.a = alpha
+                    //         cell.container.x = xOffset
+                    //         cell.container.y = yOffset
+                    //         cell.container.w = cell.image.w = wid
+                    //         cell.config.data = cellData
+                    //     }
+                       
+                        var cell = image({
+                            id: id,
+                            t: 'rect',
+                            parent: container,
+                            fillColor: transparentColor,
+                            a: alpha,
+                            x: xOffset,
+                            y: yOffset,
+                            w: wid,
+                            h: tileH,
+                            clip:true,
+                            data: cellData // store the cell data in the image config
+                        })
+                            .addEffects(imageEffects()
+                                .border2(0, borderWidth, 0, borderWidth, greyColor)
+                            )
+
+                        // create a circular reference so that we can use it later
+                        cellData.cell = cell
+                    // }
                     return cell
                 }
 
@@ -122,7 +173,7 @@ px.import({
                     if (cell.container.x < 0)
                         titleXOffset = Math.abs(cell.container.x)
 
-                    if (cell.placeholder != true) {
+                    if (cell.config.data.placeholder != true) {
                         tileRender(cell, titleXOffset, function (c) {         // invoke the rendering function
                             c.loaded = true                     // mark the cell's contents as rendered
                             if (c.initialCell)
@@ -193,36 +244,17 @@ px.import({
                 cellRelate.bottomStitchSectors(relativeSector.cells, relativeSector.data, cells, data)
             },
             _removeSector: function(sector) {
-                if (sector.top != null) {
-                    cellRelate.topUnStitchSector(sector.cells)
-                    sector.top.bottom = null
-                    sector.top = null
-                }
-                if (sector.bottom != null) {
-                    cellRelate.bottomUnStitchSector(sector.cells)
-                    sector.bottom.top = null
-                    sector.bottom = null
-                }
-                if (sector.right != null) {
-                    cellRelate.rightUnStitchSector(sector.cells)
-                    sector.right.left = null
-                    sector.right = null
-                }
-                if (sector.left != null) {
-                    cellRelate.leftUnStitchSector(sector.cells)
-                    sector.left.right = null
-                    sector.left = null
-                }
-                // sector.cells.forEach(function(cell){
-                //     cell.image.removeAll()
-                //     cell.image.remove()
-                //     cell.container.remove()
-                // })
-                sector.container.removeAll()
-                sector.container.remove()
+       
+                if (sector.cells != null)
+                    sector.cells.forEach(function(cell){
+                        memoryPool.recycle('cells',cell)
+                    })
+
+                sector.cells = null
+                sector.data = null
+                this.sectors.remove(sector)
             },
             removeTopSector: function(relativeSector) {
-                console.log('--------- MRS ---   removing top sector ---' + relativeSector.top)
                 // if a sector exists to the top - then remove it from the scene and de-reference
                 if (relativeSector.top != null) {
                     this._removeSector(relativeSector.top)

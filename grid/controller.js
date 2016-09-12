@@ -438,10 +438,11 @@ px.import({
                             uiGrid.addBottomRightSector(data.bottomRight, nextSector)
                             t.currentSectorRow = 0
                         } else if (loadNeighborDirection == "right") {
-                            uiGrid.addRightSector(data.right, nextSector)
-                            uiGrid.addBottomRightSector(data.bottomRight, nextSector)
-                            uiGrid.addTopRightSector(data.topRight, nextSector)
-                        }
+-                           uiGrid.addRightSector(data.right, nextSector)
+-                           uiGrid.addBottomRightSector(data.bottomRight, nextSector)
+-                           uiGrid.addTopRightSector(data.topRight, nextSector)
+                         }
+                       
                     })
                 }
 
@@ -449,14 +450,24 @@ px.import({
                 var unloadActionCallback = function (currentScrollingSector, currentSector, loadNeighborDirection) {
 
                     if (loadNeighborDirection == "top") {
-                        uiScrollingList.removeBottomSector(currentScrollingSector.bottom)
-                        uiGrid.removeBottomRightSector(currentSector.bottom)
-                        uiGrid.removeBottomSector(currentSector.bottom)
+                        uiScrollingList.removeBottomSector(currentScrollingSector)
+                        uiGrid.removeBottomRightSector(currentSector)
+                        uiGrid.removeBottomSector(currentSector)
                     } else if (loadNeighborDirection == "bottom") {
-                        uiScrollingList.removeTopSector(currentScrollingSector.top)
-                        uiGrid.removeTopRightSector(currentSector.top)
-                        uiGrid.removeTopSector(currentSector.top)
-                    }
+                        uiScrollingList.removeTopSector(currentScrollingSector)
+                        uiGrid.removeTopRightSector(currentSector)
+                        uiGrid.removeTopSector(currentSector)
+                    } 
+
+                    // TODO - handle unloading the left and right sectors during left/right scroll
+                    // the problem with unloading the data is there might be cells that span multiple
+                    // sectors and we need to deal with these correctly
+
+                    // else if (loadNeighborDirection == "right") {
+                    //     uiGrid.removeTopLeftSector(currentSector)
+                    //     uiGrid.removeBottomLeftSector(currentSector)
+                    //     uiGrid.removeLeftSector(currentSector)
+                    // }
                 }
 
                 this.sectorChange(cSector, currentScrollingSector, currentTimeSector,
@@ -531,12 +542,13 @@ px.import({
 
                             } else {
 
-                                // otherwise reset the title to its original position
-                                cell.title.animateTo({
-                                    x: cell.titleXPosition, // use the original position, as
-                                    w: cell.image.w - cell.title.y
-                                },
-                                    animationSpeed, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
+                                if (cell != null && cell.title != null)
+                                    // otherwise reset the title to its original position
+                                    cell.title.animateTo({
+                                            x: cell.titleXPosition, // use the original position, as
+                                            w: cell.image.w - cell.title.y
+                                        },
+                                        animationSpeed, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
                             }
                         })
                     })

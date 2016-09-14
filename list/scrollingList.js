@@ -36,31 +36,30 @@ px.import({
     image: '../image/image.js',
     imageEffects: '../image/imageEffects.js',
     math: '../math.js',
-    circularArray : '../util/circularArray.js',
-    memoryPool : '../util/memoryPool.js'
+    circularArray : '../util/circularArray.js'
 
 }).then(function importsAreReady(imports) {
 
     var image = imports.image,
         imageEffects = imports.imageEffects,
         CircularArray = imports.circularArray,
-        MemoryPool = imports.memoryPool,
-        memoryPool = new MemoryPool(),  // TODO - make global
         math = imports.math(),
         transparentColor = 0xffffff00,
         greyColor = 0x999999ff,
         animationSpeed = 0.50
 
-    module.exports = function (scene) {
+    module.exports = function (scene,memoryPool) {
 
         var imageRenderer = imports.imageRenderer(scene),
             borderWidth = 1,
             cellsPerSector = 5
 
-        memoryPool.register('scrollingTile',function(){
+        // constructor for creating a sector
+        var sectorConstructor = function(){     
 
             return {
                 container: scene.create({
+                    id : 'sector-' + Math.random(),
                     a: 1,
                     t: "rect",
                     fillColor: transparentColor,
@@ -68,7 +67,11 @@ px.import({
                 }),
                 cells:null
             }
-        })
+        }
+
+        // register a managed memory pool to allow re-use of sectors and cells in the list
+        if (memoryPool != null)
+            memoryPool.register('scrollingTile',sectorConstructor)
 
         return {
 
@@ -80,7 +83,14 @@ px.import({
             // width - of the scrolling list 
             // tileHeight - height of each time
             // circular - indicates whether items repeat
-            init: function (container, items, currentCellNumber, width, tileHeight, scrollingListXOffset, circular) {
+            init: function (container, items, currentCellNumber, width, tileHeight, scrollingListXOffset, circular, tilePadding,
+                topBorderWidth, bottomBorderWidth, leftBorderWidth,rightBorderWidth) {
+
+                this.tilePadding = tilePadding == null ? 0 : tilePadding
+                this.topBorderWidth = topBorderWidth == null ? 0 : topBorderWidth
+                this.bottomBorderWidth = bottomBorderWidth == null ? 0 : bottomBorderWidth
+                this.leftBorderWidth = leftBorderWidth == null ? 0 : leftBorderWidth
+                this.rightBorderWidth = rightBorderWidth == null ? 0 : rightBorderWidth
 
                 // we keep track of the top most and bottom most cell indices tracked
                 this.topCell = currentCellNumber
@@ -121,19 +131,6 @@ px.import({
                     clip: false
                 })
 
-                // vertical line
-                // TODO - make this configurable, or extract this out of this object
-                scene.create({
-                    t: 'rect',
-                    a: 1,
-                    parent: container,
-                    x: width,
-                    y: 0,
-                    w: 1,
-                    h: this.container.h,
-                    fillColor: greyColor
-                })
-
                 return this
             },
             // we register rendering action here for each individual tile 
@@ -142,9 +139,13 @@ px.import({
                 return this
             },
             // loop through all the items and generate pxComponent images. Nothing is rendered yet.
-            _generateCells: function (items, container, yOffset, xOffset, width, height) {
+            _generateCells: function (items, container, yOffset, xOffset, width, height, tilePadding, 
+                topBorderWidth, bottomBorderWidth, leftBorderWidth, rightBorderWidth) {
 
-                return items.map(function (item, i) {
+                if (tilePadding == null)
+                    tilePadding = 0
+
+                var cells = items.map(function (item, i) {
 
                     return image({
                         t: 'rect',
@@ -152,15 +153,25 @@ px.import({
                         fillColor: transparentColor,
                         a: 1,
                         x: xOffset,
-                        y: yOffset + height * i,
+                        y: yOffset + ( height * i ),
                         w: width,
-                        h: height,
+                        h: height - tilePadding,
                         data: item
                     }).addEffects(
                         imageEffects()
-                            .border2(0, borderWidth, 0, 0, greyColor) // only render the bottom border
+                            .border2(topBorderWidth, bottomBorderWidth, leftBorderWidth, rightBorderWidth, greyColor) // only render the bottom border
                         )
                 })
+
+                var prevCell = null
+                cells.forEach(function(cell,i){
+                    if (i > 0) {
+                        cell.config.prevCell = cells[i-1]
+                        cell.config.prevCell.config.nextCell = cell
+                    }
+                })
+
+                return cells
             },
             // initial rendering method invoked to render the starting list
             render: function (callback) {
@@ -176,31 +187,36 @@ px.import({
                 this.addTopSector(this.currentSector)
                 this.addBottomSector(this.currentSector)
 
-                callback(currentItems)
+                callback(currentItems,this.currentSector.cells[0])
             },
             // updates the position of the scrolling list. scrollYOffset is the offset that the list should scroll to
-            // TODO - maybe evolve this, or add another function to update position based on the index, rather than
-            // y location
             update: function (scrollYOffset) {
                 this.currentYLoc += scrollYOffset       // add the offset to the currentLocation
                 this.scrollingContainer.animateTo({
                     y: this.currentYLoc,
                 }, animationSpeed, scene.animation.TWEEN_STOP, scene.animation.OPTION_LOOP, 1)
             },
+            // creates a new sector with the passed in items at the y offset
             _addSector: function (items, sectorY) {
 
                 var sector,
                     f = this.tileRenderFunction
 
-                var sector = memoryPool.get('scrollingTile')
+                // get a new sector via the memory pool OR constructor
+                var sector = memoryPool != null ? memoryPool.get('scrollingTile') : sectorConstructor()
+
                 sector.container.y = sectorY    // position the scrolling list at the current cell
                 sector.container.parent = this.scrollingContainer
                 sector.container.w = this.scrollingContainer.w
                 sector.container.h = this.scrollingContainer.h
 
+                // create cells if they don't exist otherwise re-purpose the existing cells in the sector 
+                // with new data
                 if (sector.cells == null) {
 
-                    var cells = this._generateCells(items, sector.container, borderWidth, this.xOffset, this.itemW, this.tileHeight)
+                    var cells = this._generateCells(items, sector.container, borderWidth, this.xOffset, this.itemW, 
+                        this.tileHeight, this.tilePadding, this.topBorderWidth, this.bottomBorderWidth,
+                        this.leftBorderWidth, this.rightBorderWidth)
 
                     sector['cells'] = cells
 
@@ -217,6 +233,7 @@ px.import({
                 
                 return sector
             },
+            // removing a sector involves removing any references to it 
             _removeSector: function (sector) {
                 if (sector.top != null) {
                     sector.top.bottom = null
@@ -227,20 +244,26 @@ px.import({
                     sector.bottom = null
                 }
 
-                // mark and save the sector for reuse
-                memoryPool.recycle('scrollingTile',sector)
+                // mark and save the sector for reuse if a memory pool exists otherwise 
+                // use the px remove function to remove it
+                if (memoryPool != null)
+                    memoryPool.recycle('scrollingTile',sector)
+                else {
+                    sector.container.remove()
+                    sector.cells = null
+                }
             },
-            removeTopSector: function (relativeSector) {
-                // de reference the top sector and then update the top most cell index
-                // also remove it from the scene
+            // de reference the top sector and then update the top most cell index
+            // also remove it from the scene
+            removeTopSector: function (relativeSector) {    
                 if (relativeSector.top != null) {
                     this._removeSector(relativeSector.top)
                     this.topCell = this.items.getTranslatedVal(this.topCell + cellsPerSector)
                 }
             },
+            // de-reference the bottom sector and then update the bottom most cell index
+            // also remove it from the scene
             removeBottomSector: function (relativeSector) {
-                // de-reference the bottom sector and then update the bottom most cell index
-                // also remove it from the scene
                 if (relativeSector.bottom != null) {
                     this._removeSector(relativeSector.bottom)
                     this.bottomCell = this.items.getTranslatedVal(this.bottomCell - cellsPerSector)
@@ -251,13 +274,16 @@ px.import({
 
                 if (relativeSector.top == null) {
 
+                    // compute the start and end for the list of items above the current sector
+                    // and fetch the list
                     var start = this.topCell - cellsPerSector,
-                        end = this.topCell,
-                        itemList = this.items.slice(start, end)
+                        end = this.topCell
 
                     if (!this.circular) 
                         start = math.valBetween(start,0,this.items.length)
                     
+                    var itemList = this.items.slice(start, end)
+
                     this.topCell = this.circular ? this.items.getTranslatedVal(start) : start
 
                     relativeSector.top = this._addSector(itemList, relativeSector.container.y - relativeSector.container.h)
@@ -267,15 +293,17 @@ px.import({
             // adds a new sector below this sector
             addBottomSector: function (relativeSector) {
 
-                // return if a bottom sector is already present
+                // compute the start and end for the list of items above the current sector
+                // and fetch the list
                 if (relativeSector.bottom == null) {
                     var start = this.bottomCell,
-                        end = this.bottomCell + cellsPerSector,
-                        itemList = this.items.slice(start, end)
+                        end = this.bottomCell + cellsPerSector
 
                     if (!this.circular) 
                         end = math.valBetween(end,0,this.items.length)
                   
+                    var itemList = this.items.slice(start, end)
+
                     this.bottomCell = this.circular ? this.items.getTranslatedVal(end) : end
 
                     relativeSector.bottom = this._addSector(itemList, relativeSector.container.y + relativeSector.container.h)

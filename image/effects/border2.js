@@ -1,7 +1,10 @@
 // border2.js
 // post-effect
-// draws a border as a series a rectangles around the image
-
+//
+// this is different from border.js in that it draws a border as a series a rectangles around the image, 
+// rather than a single image behind the image. Having individual rectangle for each border allows
+// more fine-tuning of the border
+// 
 // TODO - use to callbackList to resize the rectangles depending on the size of the image,
 // rather than the container
 

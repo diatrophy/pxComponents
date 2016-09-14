@@ -1,3 +1,9 @@
+// Loads content from http
+//
+// TODO - would preferably use http module if allowed rather than pxArchive
+//
+// Jason Coelho
+
 px.import({
     scene:"px:scene.1.js"
 }).then(function importsAreReady(imports) {

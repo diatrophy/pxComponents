@@ -27,7 +27,7 @@ px.import({
         greyColor = 0x999999ff,
         borderWidth = 1
 
-    memoryPool.register('cells', function (id) {
+    memoryPool.register('cells', function (id) {            // image constructor
 
         return image({
                         id: id,
@@ -39,7 +39,7 @@ px.import({
                             .border2(0, borderWidth, 0, borderWidth, greyColor)
                         )
 
-    },200, function(cell){
+    },200, function(cell){                                  // limit, and recycler callback
 
         cell.image.a = 0
         cell.container.parent = null
@@ -123,7 +123,6 @@ px.import({
                     //         cell.container.x = xOffset
                     //         cell.container.y = yOffset
                     //         cell.container.w = cell.image.w = wid
-                    //         cell.config.data = cellData
                     //     }
                        
                         var cell = image({
@@ -146,6 +145,7 @@ px.import({
                         // create a circular reference so that we can use it later
                         cellData.cell = cell
                     // }
+
                     return cell
                 }
 

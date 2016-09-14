@@ -43,7 +43,7 @@ px.import({
                     t['top'] = top
                 })
 
-                lineConfig.y = this.height
+                lineConfig.y = cell.container.h// this.height
 
                 // bottom line
                 imageRenderer.render(image(lineConfig), function (bottom) {

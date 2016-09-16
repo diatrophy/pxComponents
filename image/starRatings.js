@@ -9,8 +9,8 @@ px.import({
 
         var starImage   = scene.create({t:"imageResource",url:"http://www.pxscene.org/examples/px-reference/gallery/images/gold_star.png"}),
             maxStars    = 5,
-            starWidth   = 20,
-            starHeight  = 20;
+            starWidth   = 40,
+            starHeight  = 40;
 
         return {
             starHolder:null,

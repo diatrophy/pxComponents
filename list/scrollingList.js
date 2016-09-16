@@ -84,13 +84,14 @@ px.import({
             // tileHeight - height of each time
             // circular - indicates whether items repeat
             init: function (container, items, currentCellNumber, width, tileHeight, scrollingListXOffset, circular, tilePadding,
-                topBorderWidth, bottomBorderWidth, leftBorderWidth,rightBorderWidth) {
+                topBorderWidth, bottomBorderWidth, leftBorderWidth,rightBorderWidth,cellColor) {
 
                 this.tilePadding = tilePadding == null ? 0 : tilePadding
                 this.topBorderWidth = topBorderWidth == null ? 0 : topBorderWidth
                 this.bottomBorderWidth = bottomBorderWidth == null ? 0 : bottomBorderWidth
                 this.leftBorderWidth = leftBorderWidth == null ? 0 : leftBorderWidth
                 this.rightBorderWidth = rightBorderWidth == null ? 0 : rightBorderWidth
+                this.cellColor = cellColor
 
                 // we keep track of the top most and bottom most cell indices tracked
                 this.topCell = currentCellNumber
@@ -140,7 +141,7 @@ px.import({
             },
             // loop through all the items and generate pxComponent images. Nothing is rendered yet.
             _generateCells: function (items, container, yOffset, xOffset, width, height, tilePadding, 
-                topBorderWidth, bottomBorderWidth, leftBorderWidth, rightBorderWidth) {
+                topBorderWidth, bottomBorderWidth, leftBorderWidth, rightBorderWidth, cellColor) {
 
                 if (tilePadding == null)
                     tilePadding = 0
@@ -150,7 +151,7 @@ px.import({
                     return image({
                         t: 'rect',
                         parent: container,
-                        fillColor: transparentColor,
+                        fillColor: cellColor == null ? transparentColor : cellColor,
                         a: 1,
                         x: xOffset,
                         y: yOffset + ( height * i ),
@@ -216,7 +217,7 @@ px.import({
 
                     var cells = this._generateCells(items, sector.container, borderWidth, this.xOffset, this.itemW, 
                         this.tileHeight, this.tilePadding, this.topBorderWidth, this.bottomBorderWidth,
-                        this.leftBorderWidth, this.rightBorderWidth)
+                        this.leftBorderWidth, this.rightBorderWidth, this.cellColor)
 
                     sector['cells'] = cells
 
@@ -284,10 +285,15 @@ px.import({
                     
                     var itemList = this.items.slice(start, end)
 
-                    this.topCell = this.circular ? this.items.getTranslatedVal(start) : start
+                    if (itemList.length > 0) {
+                        this.topCell = this.circular ? this.items.getTranslatedVal(start) : start
 
-                    relativeSector.top = this._addSector(itemList, relativeSector.container.y - relativeSector.container.h)
-                    relativeSector.top.bottom = relativeSector
+                        relativeSector.top = this._addSector(itemList, relativeSector.container.y - relativeSector.container.h)
+                        relativeSector.top.bottom = relativeSector
+
+                        // associate last cell in top sector to the first cell in the bottom sector
+                        relativeSector.top.cells[relativeSector.top.cells.length - 1].config.nextCell = relativeSector.cells[0]
+                    }
                 }
             },
             // adds a new sector below this sector
@@ -304,10 +310,19 @@ px.import({
                   
                     var itemList = this.items.slice(start, end)
 
-                    this.bottomCell = this.circular ? this.items.getTranslatedVal(end) : end
+                    if (itemList.length > 0) {
+                        
+                        this.bottomCell = this.circular ? this.items.getTranslatedVal(end) : end
 
-                    relativeSector.bottom = this._addSector(itemList, relativeSector.container.y + relativeSector.container.h)
-                    relativeSector.bottom.top = relativeSector
+                        relativeSector.bottom = this._addSector(itemList, relativeSector.container.y + relativeSector.container.h)
+                        relativeSector.bottom.top = relativeSector
+
+                        console.log('-------- adding bottom sector -------' + relativeSector.cells.length)
+
+                        // associate last cell in top sector to the first cell in the bottom sector
+                        relativeSector.cells[relativeSector.cells.length-1].config.nextCell = relativeSector.bottom.cells[0]
+                        relativeSector.bottom.cells[0].config.prevCell = relativeSector.cells[relativeSector.cells.length-1]
+                    }
                 }
             }
         }

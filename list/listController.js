@@ -18,14 +18,83 @@ px.import({
     module.exports = function (scene) {
 
         return {
-            register : function(scrollingList) {
+            getCellViewPortY: function (cell) {
+                return cell.container.parent.y + cell.container.y - (-1 * cell.container.parent.parent.y)
+            },
+             // determines if the currently selected cell is in a top row of the view port
+            _cellIsAtTopRow: function (cell) {
+                var y = this.getCellViewPortY(cell) - this.tileH * 0.5
+                return y < 0
+            },
+            // determines if the currently selected cell is in a bottom row of the view port
+            _cellIsAtBottomRow: function (cell) {
+                var y = this.getCellViewPortY(cell) + this.tileH * 1.5
+                return y > this.containerGrid.h
+            },
+            register: function (scrollingList, uiGridSelector, tileH, containerGrid, currentCell) {
+
+                this.tileH = tileH
+                this.currentCell = currentCell
+                this.containerGrid = containerGrid
                 
+                var t = this
+                scrollingList.container.parent.focus = true
+
                 scrollingList.container.parent.on("onKeyDown", function (e) {
 
-                    console.log('in here ---- key pressed ' + e)
+                    if (e.keyCode == 38) {                       // TOP ARROW
 
+                        var nextCell = t.currentCell.config.prevCell
+
+                        if (nextCell != null) {
+
+                            // determine if the target cell is at the bottom of the screen, and in which case
+                            // scroll the entire page up by one tile height
+
+                            // if (t._cellIsAtTopRow(t.currentCell)) {
+
+                            //     var yOffset = t.tileH
+                            //     scrollingList.update(yOffset)
+                            // } else {
+
+                            // }
+
+                            uiGridSelector.update(nextCell)
+
+                            t.currentCell = nextCell
+
+                        }
+
+                    } else if (e.keyCode == 40) {                // DOWN ARROW
+
+                        var nextCell = t.currentCell.config.nextCell
+                        
+                        if (nextCell != null) {
+
+console.log('------' + nextCell)
+                            // determine if the target cell is at the bottom of the screen, and in which case
+                            // scroll the entire page up by one tile height
+
+                            if (t._cellIsAtBottomRow(t.currentCell)) {
+
+                                var yOffset = -1 * (t.tileH)
+                                scrollingList.update(yOffset)
+                                // uiGridSelector.update(t.currentCell)
+
+                            } else {
+                                uiGridSelector.update(nextCell)
+                            }
+
+                            t.currentCell = nextCell
+
+                        }
+                    }
                 })
 
+                // move selector to current cell
+                uiGridSelector
+                    .init(tileH, containerGrid)
+                    .render(currentCell)
             }
         }
     }

@@ -515,7 +515,10 @@ px.import({
 
                     var rows = targetSector.data
 
-                    targetSector.data.forEach(function (rows) {
+                    if (rows == null)
+                        return
+                        
+                    rows.forEach(function (rows) {
 
                         // nested loop through all cells in the reverse order, 
                         // break when first negative cell encountered
